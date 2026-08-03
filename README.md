@@ -2,6 +2,15 @@
 
 Purwarupa frontend interaktif untuk layanan konsultasi Haji dan Umrah di tingkat provinsi. Aplikasi memperagakan situs informasi publik, permohonan dan penjadwalan konsultasi, dashboard pengguna, dashboard konsultan, dashboard administrator, serta ruang pertemuan daring.
 
+Ruang lingkup purwarupa juga mencakup:
+
+- register permohonan layanan
+- register penyelesaian layanan
+- monitoring ketepatan waktu
+- bukti penyelesaian pelayanan
+- rekap waktu penyelesaian
+- dokumentasi pelayanan dan kehadiran pertemuan
+
 ## Teknologi
 
 - React
