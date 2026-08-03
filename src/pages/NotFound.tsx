@@ -1,0 +1,2 @@
+import{Link}from'react-router-dom';import{Compass,MoonStar}from'lucide-react';
+export default function NotFound(){return <main className="not-found"><div><span><MoonStar/></span><small>404 · Halaman tidak ditemukan</small><h1>Sepertinya Anda mengambil jalur yang berbeda.</h1><p>Halaman yang dicari tidak tersedia dalam purwarupa ini. Anda dapat kembali ke beranda atau melanjutkan ke dashboard demonstrasi.</p><div><Link className="btn primary" to="/"><Compass/> Kembali ke Beranda</Link><Link className="btn secondary" to="/dashboard">Buka Dashboard</Link></div></div></main>}

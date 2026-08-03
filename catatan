@@ -1,0 +1,9 @@
+buat rab aplikasi teleconference
+
+Komponen Aplikasi	Teknologi Rekomendasi	Biaya Pihak Ke-3 & Cloud
+Front-End App	Next.js / React / Vue	Rp 0 (Vercel / Cloudflare Pages)
+Database & Auth	PostgreSQL	Rp 0 (Supabase Free Tier - Max 500MB)
+File Storage (PDF/Izin)	Object Storage	Rp 0 (Supabase Storage - Max 1GB)
+Teleconference	WebRTC Video/Audio	Rp 0 (LiveKit Cloud - Gratis 5.000 menit/bln)
+Notifikasi Izin	Email Gateway	Rp 0 (Resend - Gratis 3.000 email/bln)
+Domain Resmi (.id / .com)	Registrar (Niagahoster/Namecheap)	~Rp 150.000 / TAHUN (Satu-satunya modal wajib)
