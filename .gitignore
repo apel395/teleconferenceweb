@@ -8,5 +8,6 @@ dist/
 .idea/
 .vscode/
 coverage/
+.vercel/
 *.tsbuildinfo
 node_modules.incomplete/
