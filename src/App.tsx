@@ -45,156 +45,30 @@ const categories: {name:Category; desc:string; icon:typeof FileText}[] = [
 
 function Header(){
   const [open,setOpen]=useState(false);
-  return <header className="site-header">
-    <div className="header-inner">
-      <Link to="/" className="brand">
-        <span className="brand-mark">KH</span>
-        <span><b>KEMENHAJ</b><small>Kantor Wilayah Provinsi Riau</small></span>
-      </Link>
-      <nav className={open?'main-nav open':'main-nav'}>
-        <Link to="/" onClick={()=>setOpen(false)}>Beranda</Link>
-        <Link to="/layanan" onClick={()=>setOpen(false)}>Layanan</Link>
-        <Link to="/direktori-travel" onClick={()=>setOpen(false)}>Direktori Travel</Link>
-        <Link to="/edukasi" onClick={()=>setOpen(false)}>Edukasi Jemaah</Link>
-        <Link to="/tentang" onClick={()=>setOpen(false)}>Tentang</Link>
-      </nav>
-      <div className="header-actions">
-        <Link to="/masuk" className="btn ghost"><LogIn size={16}/> Masuk</Link>
-        <Link to="/layanan" className="btn primary">Mulai layanan <ArrowRight size={16}/></Link>
-      </div>
-      <button className="mobile-menu" onClick={()=>setOpen(!open)} aria-label="Buka menu">{open?<X/>:<Menu/>}</button>
-    </div>
-  </header>
+  return <header className="site-header"><div className="header-inner"><Link to="/" className="brand"><span className="brand-mark">KH</span><span><b>KEMENHAJ</b><small>Kantor Wilayah Provinsi Riau</small></span></Link><nav className={open?'main-nav open':'main-nav'}><Link to="/" onClick={()=>setOpen(false)}>Beranda</Link><Link to="/layanan" onClick={()=>setOpen(false)}>Layanan</Link><Link to="/direktori-travel" onClick={()=>setOpen(false)}>Direktori Travel</Link><Link to="/edukasi" onClick={()=>setOpen(false)}>Edukasi Jemaah</Link><Link to="/tentang" onClick={()=>setOpen(false)}>Tentang</Link></nav><div className="header-actions"><Link to="/masuk" className="btn ghost"><LogIn size={16}/> Masuk</Link><Link to="/layanan" className="btn primary">Mulai layanan <ArrowRight size={16}/></Link></div><button className="mobile-menu" onClick={()=>setOpen(!open)} aria-label="Buka menu">{open?<X/>:<Menu/>}</button></div></header>
 }
 
-function Footer(){
-  return <footer className="site-footer">
-    <div className="footer-grid">
-      <div className="footer-brand"><div className="brand"><span className="brand-mark">KH</span><span><b>KEMENHAJ</b><small>Kantor Wilayah Provinsi Riau</small></span></div><p>Portal layanan digital untuk pelaporan, administrasi penyelenggara, dan edukasi haji & umrah di Provinsi Riau.</p></div>
-      <div><b>Layanan</b><Link to="/layanan">Semua layanan</Link><Link to="/direktori-travel">Direktori travel</Link><Link to="/edukasi">Edukasi jemaah</Link></div>
-      <div><b>Informasi</b><Link to="/tentang">Tentang layanan</Link><Link to="/layanan/permasalahan-umrah-haji-khusus">Laporkan masalah</Link><Link to="/masuk">Area petugas</Link></div>
-      <div><b>Prinsip layanan</b><p>Data terstruktur, status dapat ditelusuri, dan proses administrasi tetap mengikuti ketentuan serta verifikasi petugas.</p></div>
-    </div>
-    <div className="footer-bottom"><span>© 2026 Kemenhaj Provinsi Riau</span><span>Portal Layanan Haji & Umrah</span></div>
-  </footer>
-}
+function Footer(){return <footer className="site-footer"><div className="footer-grid"><div className="footer-brand"><div className="brand"><span className="brand-mark">KH</span><span><b>KEMENHAJ</b><small>Kantor Wilayah Provinsi Riau</small></span></div><p>Portal layanan digital untuk pelaporan, administrasi penyelenggara, dan edukasi haji & umrah di Provinsi Riau.</p></div><div><b>Layanan</b><Link to="/layanan">Semua layanan</Link><Link to="/direktori-travel">Direktori travel</Link><Link to="/edukasi">Edukasi jemaah</Link></div><div><b>Informasi</b><Link to="/tentang">Tentang layanan</Link><Link to="/layanan/permasalahan-umrah-haji-khusus">Laporkan masalah</Link><Link to="/masuk">Area petugas</Link></div><div><b>Prinsip layanan</b><p>Data terstruktur, status dapat ditelusuri, dan proses administrasi tetap mengikuti ketentuan serta verifikasi petugas.</p></div></div><div className="footer-bottom"><span>© 2026 Kemenhaj Provinsi Riau</span><span>Portal Layanan Haji & Umrah</span></div></footer>}
 
 function Layout({children}:{children:React.ReactNode}){ return <><Header/><main>{children}</main><Footer/></> }
 
-function HomePage(){
-  const reporting = services.filter(s=>s.category==='Pelaporan');
-  return <Layout>
-    <section className="hero">
-      <div className="hero-content">
-        <span className="eyebrow"><ShieldCheck size={15}/> Portal layanan resmi wilayah</span>
-        <h1>Satu pintu layanan <em>Haji & Umrah</em> Provinsi Riau.</h1>
-        <p>Pelaporan, administrasi penyelenggara, direktori travel, dan edukasi jemaah dalam satu layanan digital yang jelas dan mudah digunakan.</p>
-        <div className="hero-actions"><Link to="/layanan" className="btn primary large">Lihat semua layanan <ArrowRight size={17}/></Link><Link to="/direktori-travel" className="btn light large">Cek travel umrah</Link></div>
-        <div className="hero-trust"><span><CheckCircle2 size={16}/> Data layanan terstruktur</span><span><CheckCircle2 size={16}/> Status dapat ditelusuri</span><span><CheckCircle2 size={16}/> Akses publik & petugas</span></div>
-      </div>
-      <div className="hero-panel">
-        <div className="panel-head"><span>Ringkasan layanan</span><b>{services.length} layanan utama</b></div>
-        {categories.map(c=>{const I=c.icon; return <Link to="/layanan" className="summary-row" key={c.name}><span className="summary-icon"><I size={20}/></span><span><b>{c.name}</b><small>{services.filter(s=>s.category===c.name).length} layanan</small></span><ChevronRight size={17}/></Link>})}
-        <div className="panel-note"><CalendarDays size={18}/><span><b>Pelayanan terjadwal</b><small>Dokumen perizinan ditindaklanjuti sesuai proses layanan kantor.</small></span></div>
-      </div>
-    </section>
+function HomePage(){const reporting=services.filter(s=>s.category==='Pelaporan');return <Layout><section className="hero"><div className="hero-content"><span className="eyebrow"><ShieldCheck size={15}/> Portal layanan resmi wilayah</span><h1>Satu pintu layanan <em>Haji & Umrah</em> Provinsi Riau.</h1><p>Pelaporan, administrasi penyelenggara, direktori travel, dan edukasi jemaah dalam satu layanan digital yang jelas dan mudah digunakan.</p><div className="hero-actions"><Link to="/layanan" className="btn primary large">Lihat semua layanan <ArrowRight size={17}/></Link><Link to="/direktori-travel" className="btn light large">Cek travel umrah</Link></div><div className="hero-trust"><span><CheckCircle2 size={16}/> Data layanan terstruktur</span><span><CheckCircle2 size={16}/> Status dapat ditelusuri</span><span><CheckCircle2 size={16}/> Akses publik & petugas</span></div></div><div className="hero-panel"><div className="panel-head"><span>Ringkasan layanan</span><b>{services.length} layanan utama</b></div>{categories.map(c=>{const I=c.icon;return <Link to="/layanan" className="summary-row" key={c.name}><span className="summary-icon"><I size={20}/></span><span><b>{c.name}</b><small>{services.filter(s=>s.category===c.name).length} layanan</small></span><ChevronRight size={17}/></Link>})}<div className="panel-note"><CalendarDays size={18}/><span><b>Pelayanan terjadwal</b><small>Dokumen perizinan ditindaklanjuti sesuai proses layanan kantor.</small></span></div></div></section><section className="stats-strip"><div><b>{reporting.length}</b><span>Jenis pelaporan</span></div><div><b>3</b><span>Layanan edukasi publik</span></div><div><b>1</b><span>Direktori travel terpadu</span></div><div><b>24/7</b><span>Akses informasi layanan</span></div></section><section className="section"><div className="section-heading"><div><span className="kicker">Layanan utama</span><h2>Mulai dari kebutuhan Anda</h2></div><p>Setiap layanan dipisahkan berdasarkan proses bisnis agar pelaporan dan tindak lanjut tidak tercampur.</p></div><div className="category-grid">{categories.map(c=>{const I=c.icon;return <Link className="category-card" to="/layanan" key={c.name}><span className="category-icon"><I/></span><h3>{c.name}</h3><p>{c.desc}</p><span className="card-link">Buka layanan <ArrowRight size={15}/></span></Link>})}</div></section><section className="section soft"><div className="section-heading"><div><span className="kicker">Pelaporan prioritas</span><h2>Operasional haji dan umrah</h2></div><Link to="/layanan" className="text-link">Lihat seluruh layanan <ArrowRight size={15}/></Link></div><div className="service-grid">{reporting.slice(0,6).map(s=><ServiceCard service={s} key={s.slug}/>)}</div></section><section className="travel-banner"><div><span className="kicker light">Perlindungan masyarakat</span><h2>Cek travel umrah sebelum menggunakan layanan.</h2><p>Direktori menampilkan status penyelenggara, cabang, dan penanda permasalahan agar masyarakat memperoleh referensi yang sama dengan petugas.</p></div><Link to="/direktori-travel" className="btn gold">Buka direktori travel <ArrowRight size={16}/></Link></section><section className="section"><div className="section-heading"><div><span className="kicker">Untuk jemaah</span><h2>Persiapan ibadah dalam satu pusat edukasi</h2></div><p>Materi fikih, tutorial manasik, dan doa dirancang sebagai konten publik yang mudah ditemukan.</p></div><div className="education-grid">{services.filter(s=>s.category==='Edukasi').map(s=><ServiceCard service={s} key={s.slug}/>)}</div></section></Layout>}
 
-    <section className="stats-strip">
-      <div><b>{reporting.length}</b><span>Jenis pelaporan</span></div>
-      <div><b>3</b><span>Layanan edukasi publik</span></div>
-      <div><b>1</b><span>Direktori travel terpadu</span></div>
-      <div><b>24/7</b><span>Akses informasi layanan</span></div>
-    </section>
+function ServiceCard({service}:{service:Service}){const I=service.icon;return <Link to={`/layanan/${service.slug}`} className="service-card"><div className="service-card-top"><span className="service-icon"><I size={21}/></span>{service.priority&&<span className="priority">Prioritas</span>}{service.status==='public'&&<span className="public-badge">Publik</span>}</div><h3>{service.title}</h3><p>{service.description}</p><div className="service-meta"><span>{service.audience}</span><ArrowRight size={16}/></div></Link>}
 
-    <section className="section">
-      <div className="section-heading"><div><span className="kicker">Layanan utama</span><h2>Mulai dari kebutuhan Anda</h2></div><p>Setiap layanan dipisahkan berdasarkan proses bisnis agar pelaporan dan tindak lanjut tidak tercampur.</p></div>
-      <div className="category-grid">{categories.map(c=>{const I=c.icon;return <Link className="category-card" to="/layanan" key={c.name}><span className="category-icon"><I/></span><h3>{c.name}</h3><p>{c.desc}</p><span className="card-link">Buka layanan <ArrowRight size={15}/></span></Link>})}</div>
-    </section>
+function ServicesPage(){const [query,setQuery]=useState('');const [cat,setCat]=useState<'Semua'|Category>('Semua');const filtered=useMemo(()=>services.filter(s=>(cat==='Semua'||s.category===cat)&&(`${s.title} ${s.description} ${s.audience}`.toLowerCase().includes(query.toLowerCase()))),[query,cat]);return <Layout><PageHero kicker="Katalog layanan" title="Layanan Haji & Umrah" text="Pilih layanan berdasarkan kebutuhan pelaporan, administrasi penyelenggara, atau edukasi jemaah."/><section className="section catalog"><div className="catalog-toolbar"><div className="search-box"><Search size={18}/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Cari layanan..."/></div><div className="filter-tabs">{(['Semua','Pelaporan','Perizinan & Travel','Edukasi'] as const).map(x=><button className={cat===x?'active':''} onClick={()=>setCat(x)} key={x}>{x}</button>)}</div></div><div className="service-grid">{filtered.map(s=><ServiceCard service={s} key={s.slug}/>)}</div>{!filtered.length&&<div className="empty-state"><Search/><b>Layanan tidak ditemukan</b><span>Coba kata kunci atau kategori lain.</span></div>}</section></Layout>}
 
-    <section className="section soft">
-      <div className="section-heading"><div><span className="kicker">Pelaporan prioritas</span><h2>Operasional haji dan umrah</h2></div><Link to="/layanan" className="text-link">Lihat seluruh layanan <ArrowRight size={15}/></Link></div>
-      <div className="service-grid">{reporting.slice(0,6).map(s=><ServiceCard service={s} key={s.slug}/>)}</div>
-    </section>
+function ServiceDetail(){const {slug}=useParams();const service=services.find(s=>s.slug===slug);if(!service)return <Navigate to="/layanan" replace/>;const I=service.icon;return <Layout><section className="detail-hero"><div><span className="breadcrumb"><Link to="/layanan">Layanan</Link><ChevronRight size={14}/>{service.category}</span><span className="detail-icon"><I/></span><h1>{service.title}</h1><p>{service.description}</p><div className="detail-tags"><span>{service.category}</span><span>{service.audience}</span></div></div></section><section className="detail-layout"><div className="detail-main"><h2>Informasi layanan</h2><p>Layanan ini disiapkan sebagai kanal resmi pengumpulan informasi dan dokumen. Data yang dikirim akan memiliki nomor referensi dan dapat ditindaklanjuti oleh petugas sesuai proses yang berlaku.</p><h3>Alur layanan</h3><div className="steps-list"><div><span>1</span><div><b>Isi data utama</b><p>Lengkapi informasi sesuai jenis layanan.</p></div></div><div><span>2</span><div><b>Unggah dokumen pendukung</b><p>Lampirkan dokumen apabila diperlukan.</p></div></div><div><span>3</span><div><b>Kirim dan simpan nomor referensi</b><p>Nomor referensi digunakan untuk penelusuran status.</p></div></div><div><span>4</span><div><b>Tindak lanjut petugas</b><p>Petugas memeriksa laporan atau mengarahkan konsultasi lanjutan.</p></div></div></div></div><aside className="action-card"><span className="kicker">Mulai layanan</span><h3>{service.title}</h3><p>Pastikan data dan dokumen yang diperlukan sudah tersedia sebelum melanjutkan.</p><button className="btn primary full">Isi formulir <ArrowRight size={16}/></button><small>Dengan melanjutkan, Anda menyatakan data yang dikirim sesuai dokumen dan informasi yang tersedia.</small></aside></section></Layout>}
 
-    <section className="travel-banner">
-      <div><span className="kicker light">Perlindungan masyarakat</span><h2>Cek travel umrah sebelum menggunakan layanan.</h2><p>Direktori menampilkan status penyelenggara, cabang, dan penanda permasalahan agar masyarakat memperoleh referensi yang sama dengan petugas.</p></div>
-      <Link to="/direktori-travel" className="btn gold">Buka direktori travel <ArrowRight size={16}/></Link>
-    </section>
+function TravelDirectory(){const [query,setQuery]=useState('');const travel=[['PT Safar Riau Wisata','PPIU Aktif','Pekanbaru','Baik'],['PT Cahaya Haramain Riau','PPIU Aktif','Pekanbaru','Baik'],['PT Nusantara Ibadah Riau','Perlu Verifikasi','Dumai','Perhatian'],['PT Bumi Madani Travel','PPIU Aktif','Siak','Baik']];const rows=travel.filter(r=>r.join(' ').toLowerCase().includes(query.toLowerCase()));return <Layout><PageHero kicker="Direktori publik" title="Travel Umrah di Provinsi Riau" text="Cari penyelenggara perjalanan ibadah, lihat status legalitas, cabang, dan catatan layanan."/><section className="section directory"><div className="directory-info"><ShieldCheck size={20}/><div><b>Selalu verifikasi sebelum mendaftar.</b><p>Gunakan informasi pada direktori sebagai referensi awal dan ikuti keterangan status yang ditampilkan oleh petugas.</p></div></div><div className="search-box wide"><Search size={18}/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Cari nama travel atau kota..."/></div><div className="table-wrap"><table><thead><tr><th>Nama travel</th><th>Status</th><th>Wilayah</th><th>Catatan</th><th></th></tr></thead><tbody>{rows.map((r,i)=><tr key={i}><td><b>{r[0]}</b></td><td><span className={r[1]==='PPIU Aktif'?'status ok':'status warn'}>{r[1]}</span></td><td>{r[2]}</td><td>{r[3]}</td><td><ChevronRight size={16}/></td></tr>)}</tbody></table></div></section></Layout>}
 
-    <section className="section">
-      <div className="section-heading"><div><span className="kicker">Untuk jemaah</span><h2>Persiapan ibadah dalam satu pusat edukasi</h2></div><p>Materi fikih, tutorial manasik, dan doa dirancang sebagai konten publik yang mudah ditemukan.</p></div>
-      <div className="education-grid">{services.filter(s=>s.category==='Edukasi').map(s=><ServiceCard service={s} key={s.slug}/>)}</div>
-    </section>
-  </Layout>
-}
+function EducationPage(){return <Layout><PageHero kicker="Pusat edukasi" title="Panduan Jemaah Haji & Umrah" text="Temukan referensi fikih, tutorial manasik, dan bacaan doa dalam satu pusat pengetahuan."/><section className="section"><div className="education-grid">{services.filter(s=>s.category==='Edukasi').map(s=><ServiceCard service={s} key={s.slug}/>)}</div><div className="knowledge-panel"><div><BookOpenText size={28}/><h2>Konten resmi, mudah dicari, mudah dipelajari.</h2><p>Konten edukasi tersedia untuk masyarakat tanpa harus masuk ke area petugas, sehingga materi dapat diakses dengan cepat saat dibutuhkan.</p></div><Link to="/layanan/tanya-jawab-fikih-haji" className="btn light">Mulai dari fikih haji</Link></div></section></Layout>}
 
-function ServiceCard({service}:{service:Service}){
-  const I=service.icon;
-  return <Link to={`/layanan/${service.slug}`} className="service-card">
-    <div className="service-card-top"><span className="service-icon"><I size={21}/></span>{service.priority&&<span className="priority">Prioritas</span>}{service.status==='public'&&<span className="public-badge">Publik</span>}</div>
-    <h3>{service.title}</h3><p>{service.description}</p>
-    <div className="service-meta"><span>{service.audience}</span><ArrowRight size={16}/></div>
-  </Link>
-}
+function LoginPage(){return <Layout><section className="login-section"><div className="login-card"><div className="login-brand"><span className="brand-mark">KH</span><div><b>Area Petugas</b><span>Kemenhaj Provinsi Riau</span></div></div><h1>Masuk ke sistem</h1><p>Akses dashboard operasional, register laporan, dan tindak lanjut layanan.</p><label>Email / username<input placeholder="nama@kemenhaj.go.id"/></label><label>Kata sandi<input type="password" placeholder="••••••••"/></label><button className="btn primary full">Masuk <ArrowRight size={16}/></button><small>Akses diberikan sesuai akun dan kewenangan petugas yang terdaftar.</small></div></section></Layout>}
 
-function ServicesPage(){
-  const [query,setQuery]=useState(''); const [cat,setCat]=useState<'Semua'|Category>('Semua');
-  const filtered=useMemo(()=>services.filter(s=>(cat==='Semua'||s.category===cat)&&(`${s.title} ${s.description} ${s.audience}`.toLowerCase().includes(query.toLowerCase()))),[query,cat]);
-  return <Layout><PageHero kicker="Katalog layanan" title="Layanan Haji & Umrah" text="Pilih layanan berdasarkan kebutuhan pelaporan, administrasi penyelenggara, atau edukasi jemaah."/>
-    <section className="section catalog">
-      <div className="catalog-toolbar"><div className="search-box"><Search size={18}/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Cari layanan..."/></div><div className="filter-tabs">{(['Semua','Pelaporan','Perizinan & Travel','Edukasi'] as const).map(x=><button className={cat===x?'active':''} onClick={()=>setCat(x)} key={x}>{x}</button>)}</div></div>
-      <div className="service-grid">{filtered.map(s=><ServiceCard service={s} key={s.slug}/>)}</div>
-      {!filtered.length&&<div className="empty-state"><Search/><b>Layanan tidak ditemukan</b><span>Coba kata kunci atau kategori lain.</span></div>}
-    </section>
-  </Layout>
-}
-
-function ServiceDetail(){
-  const {slug}=useParams(); const service=services.find(s=>s.slug===slug); if(!service)return <Navigate to="/layanan" replace/>;
-  const I=service.icon;
-  return <Layout><section className="detail-hero"><div><span className="breadcrumb"><Link to="/layanan">Layanan</Link><ChevronRight size={14}/>{service.category}</span><span className="detail-icon"><I/></span><h1>{service.title}</h1><p>{service.description}</p><div className="detail-tags"><span>{service.category}</span><span>{service.audience}</span></div></div></section>
-    <section className="detail-layout"><div className="detail-main"><h2>Informasi layanan</h2><p>Layanan ini disiapkan sebagai kanal resmi pengumpulan informasi dan dokumen. Data yang dikirim akan memiliki nomor referensi dan dapat ditindaklanjuti oleh petugas sesuai proses yang berlaku.</p><h3>Alur layanan</h3><div className="steps-list"><div><span>1</span><div><b>Isi data utama</b><p>Lengkapi informasi sesuai jenis layanan.</p></div></div><div><span>2</span><div><b>Unggah dokumen pendukung</b><p>Lampirkan dokumen apabila diperlukan.</p></div></div><div><span>3</span><div><b>Kirim dan simpan nomor referensi</b><p>Nomor referensi digunakan untuk penelusuran status.</p></div></div><div><span>4</span><div><b>Tindak lanjut petugas</b><p>Petugas memeriksa laporan atau mengarahkan konsultasi lanjutan.</p></div></div></div></div>
-    <aside className="action-card"><span className="kicker">Mulai layanan</span><h3>{service.title}</h3><p>Pastikan data dan dokumen yang diperlukan sudah tersedia sebelum melanjutkan.</p><button className="btn primary full">Isi formulir <ArrowRight size={16}/></button><small>Integrasi form/backend akan menggunakan endpoint layanan berdasarkan slug ini.</small></aside></section>
-  </Layout>
-}
-
-function TravelDirectory(){
-  const [query,setQuery]=useState('');
-  const travel=[['PT Safar Riau Wisata','PPIU Aktif','Pekanbaru','Baik'],['PT Cahaya Haramain Riau','PPIU Aktif','Pekanbaru','Baik'],['PT Nusantara Ibadah Riau','Perlu Verifikasi','Dumai','Perhatian'],['PT Bumi Madani Travel','PPIU Aktif','Siak','Baik']];
-  const rows=travel.filter(r=>r.join(' ').toLowerCase().includes(query.toLowerCase()));
-  return <Layout><PageHero kicker="Direktori publik" title="Travel Umrah di Provinsi Riau" text="Cari penyelenggara perjalanan ibadah, lihat status legalitas, cabang, dan catatan layanan."/>
-    <section className="section directory"><div className="directory-info"><ShieldCheck size={20}/><div><b>Selalu verifikasi sebelum mendaftar.</b><p>Status pada direktori harus disinkronkan dengan data resmi backend pada tahap implementasi API.</p></div></div>
-      <div className="search-box wide"><Search size={18}/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Cari nama travel atau kota..."/></div>
-      <div className="table-wrap"><table><thead><tr><th>Nama travel</th><th>Status</th><th>Wilayah</th><th>Catatan</th><th></th></tr></thead><tbody>{rows.map((r,i)=><tr key={i}><td><b>{r[0]}</b></td><td><span className={r[1]==='PPIU Aktif'?'status ok':'status warn'}>{r[1]}</span></td><td>{r[2]}</td><td>{r[3]}</td><td><ChevronRight size={16}/></td></tr>)}</tbody></table></div>
-    </section>
-  </Layout>
-}
-
-function EducationPage(){
-  return <Layout><PageHero kicker="Pusat edukasi" title="Panduan Jemaah Haji & Umrah" text="Temukan referensi fikih, tutorial manasik, dan bacaan doa dalam satu pusat pengetahuan."/>
-  <section className="section"><div className="education-grid">{services.filter(s=>s.category==='Edukasi').map(s=><ServiceCard service={s} key={s.slug}/>)}</div><div className="knowledge-panel"><div><BookOpenText size={28}/><h2>Konten resmi, mudah dicari, mudah dipelajari.</h2><p>Struktur production memisahkan konten edukasi dari proses pelaporan sehingga masyarakat dapat mengakses materi tanpa harus masuk ke area petugas.</p></div><Link to="/layanan/tanya-jawab-fikih-haji" className="btn light">Mulai dari fikih haji</Link></div></section></Layout>
-}
-
-function LoginPage(){
- return <Layout><section className="login-section"><div className="login-card"><div className="login-brand"><span className="brand-mark">KH</span><div><b>Area Petugas</b><span>Kemenhaj Provinsi Riau</span></div></div><h1>Masuk ke sistem</h1><p>Akses dashboard operasional, register laporan, dan tindak lanjut layanan.</p><label>Email / username<input placeholder="nama@kemenhaj.go.id"/></label><label>Kata sandi<input type="password" placeholder="••••••••"/></label><button className="btn primary full">Masuk <ArrowRight size={16}/></button><small>Autentikasi production akan dihubungkan ke backend dan role-based access control.</small></div></section></Layout>
-}
-
-function AboutPage(){
- return <Layout><PageHero kicker="Tentang portal" title="Layanan digital yang mengikuti proses kerja nyata" text="Portal ini dirancang sebagai kanal operasional, bukan sekadar halaman informasi."/><section className="section prose"><h2>Prinsip desain production</h2><p>Setiap jenis pelaporan memiliki jalur sendiri, data perizinan diperlakukan sebagai pengajuan dokumen dan konsultasi, direktori travel menjadi layanan publik, dan area petugas dipisahkan dari akses masyarakat.</p><div className="principle-grid"><div><ShieldCheck/><b>Terstruktur</b><span>Data mengikuti tipe layanan dan mudah diaudit.</span></div><div><FileText/><b>Dapat ditelusuri</b><span>Setiap kiriman memiliki nomor referensi dan status.</span></div><div><Users/><b>Berbasis peran</b><span>Akses publik, penyelenggara, dan petugas dibedakan.</span></div></div></section></Layout>
-}
+function AboutPage(){return <Layout><PageHero kicker="Tentang portal" title="Layanan digital yang mengikuti proses kerja nyata" text="Portal ini dirancang sebagai kanal operasional, bukan sekadar halaman informasi."/><section className="section prose"><h2>Prinsip desain layanan</h2><p>Setiap jenis pelaporan memiliki jalur sendiri, data perizinan diperlakukan sebagai pengajuan dokumen dan konsultasi, direktori travel menjadi layanan publik, dan area petugas dipisahkan dari akses masyarakat.</p><div className="principle-grid"><div><ShieldCheck/><b>Terstruktur</b><span>Data mengikuti tipe layanan dan mudah diaudit.</span></div><div><FileText/><b>Dapat ditelusuri</b><span>Setiap kiriman memiliki nomor referensi dan status.</span></div><div><Users/><b>Berbasis peran</b><span>Akses publik, penyelenggara, dan petugas dibedakan.</span></div></div></section></Layout>}
 
 function PageHero({kicker,title,text}:{kicker:string;title:string;text:string}){return <section className="page-hero"><span className="kicker">{kicker}</span><h1>{title}</h1><p>{text}</p></section>}
 
-function App(){
- return <BrowserRouter><Routes>
-   <Route path="/" element={<HomePage/>}/>
-   <Route path="/layanan" element={<ServicesPage/>}/>
-   <Route path="/layanan/:slug" element={<ServiceDetail/>}/>
-   <Route path="/direktori-travel" element={<TravelDirectory/>}/>
-   <Route path="/edukasi" element={<EducationPage/>}/>
-   <Route path="/masuk" element={<LoginPage/>}/>
-   <Route path="/tentang" element={<AboutPage/>}/>
-   <Route path="*" element={<Navigate to="/" replace/>}/>
- </Routes></BrowserRouter>
-}
+function App(){return <BrowserRouter><Routes><Route path="/" element={<HomePage/>}/><Route path="/layanan" element={<ServicesPage/>}/><Route path="/layanan/:slug" element={<ServiceDetail/>}/><Route path="/direktori-travel" element={<TravelDirectory/>}/><Route path="/edukasi" element={<EducationPage/>}/><Route path="/masuk" element={<LoginPage/>}/><Route path="/tentang" element={<AboutPage/>}/><Route path="*" element={<Navigate to="/" replace/>}/></Routes></BrowserRouter>}
 export default App;
