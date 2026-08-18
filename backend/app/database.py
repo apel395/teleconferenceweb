@@ -4,7 +4,17 @@ from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
 from .config import get_settings
 
 settings = get_settings()
-engine = create_engine(settings.database_url, pool_pre_ping=True, pool_recycle=1800)
+
+# Lambda execution environments may scale horizontally. Keep the per-process
+# PostgreSQL pool intentionally tiny so a burst cannot exhaust the small VPS DB.
+engine = create_engine(
+    settings.database_url,
+    pool_pre_ping=True,
+    pool_recycle=900,
+    pool_size=1,
+    max_overflow=0,
+    pool_timeout=5,
+)
 SessionLocal = sessionmaker(bind=engine, autoflush=False, expire_on_commit=False)
 
 
