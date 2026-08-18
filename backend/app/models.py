@@ -1,6 +1,6 @@
 from datetime import datetime
 from enum import Enum
-from sqlalchemy import Boolean, DateTime, Enum as SAEnum, ForeignKey, JSON, String, Text
+from sqlalchemy import Boolean, DateTime, Enum as SAEnum, ForeignKey, JSON, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from .database import Base
 
@@ -10,6 +10,8 @@ class SubmissionStatus(str, Enum):
     DRAFT="DRAFT"; SUBMITTED="SUBMITTED"; IN_REVIEW="IN_REVIEW"; NEEDS_FOLLOW_UP="NEEDS_FOLLOW_UP"; COMPLETED="COMPLETED"; CLOSED="CLOSED"
 class TravelStatus(str, Enum):
     ACTIVE="ACTIVE"; NEEDS_VERIFICATION="NEEDS_VERIFICATION"; PROBLEMATIC="PROBLEMATIC"; INACTIVE="INACTIVE"
+class SurveyQuestionType(str, Enum):
+    TEXT="TEXT"; TEXTAREA="TEXTAREA"; SINGLE_CHOICE="SINGLE_CHOICE"; MULTIPLE_CHOICE="MULTIPLE_CHOICE"; RATING="RATING"; YES_NO="YES_NO"
 
 class TimestampMixin:
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
@@ -89,3 +91,63 @@ class ConsultationRoom(Base, TimestampMixin):
     host_url: Mapped[str|None] = mapped_column(Text, nullable=True)
     starts_at: Mapped[datetime|None] = mapped_column(DateTime(timezone=True), nullable=True)
     ends_at: Mapped[datetime|None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+class Survey(Base, TimestampMixin):
+    __tablename__="surveys"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    title: Mapped[str] = mapped_column(String(220))
+    description: Mapped[str|None] = mapped_column(Text, nullable=True)
+    applies_to_all_services: Mapped[bool] = mapped_column(Boolean, default=False, index=True)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True, index=True)
+    created_by_id: Mapped[int|None] = mapped_column(ForeignKey("users.id"), nullable=True)
+    questions = relationship("SurveyQuestion", back_populates="survey", cascade="all, delete-orphan", order_by="SurveyQuestion.position")
+    service_assignments = relationship("SurveyServiceAssignment", back_populates="survey", cascade="all, delete-orphan")
+
+class SurveyQuestion(Base, TimestampMixin):
+    __tablename__="survey_questions"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    survey_id: Mapped[int] = mapped_column(ForeignKey("surveys.id", ondelete="CASCADE"), index=True)
+    prompt: Mapped[str] = mapped_column(Text)
+    question_type: Mapped[SurveyQuestionType] = mapped_column(SAEnum(SurveyQuestionType))
+    is_required: Mapped[bool] = mapped_column(Boolean, default=False)
+    position: Mapped[int] = mapped_column(default=0)
+    settings: Mapped[dict] = mapped_column(JSON, default=dict)
+    survey = relationship("Survey", back_populates="questions")
+    options = relationship("SurveyQuestionOption", back_populates="question", cascade="all, delete-orphan", order_by="SurveyQuestionOption.position")
+
+class SurveyQuestionOption(Base, TimestampMixin):
+    __tablename__="survey_question_options"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    question_id: Mapped[int] = mapped_column(ForeignKey("survey_questions.id", ondelete="CASCADE"), index=True)
+    label: Mapped[str] = mapped_column(String(255))
+    value: Mapped[str] = mapped_column(String(255))
+    position: Mapped[int] = mapped_column(default=0)
+    question = relationship("SurveyQuestion", back_populates="options")
+
+class SurveyServiceAssignment(Base, TimestampMixin):
+    __tablename__="survey_service_assignments"
+    __table_args__=(UniqueConstraint("survey_id","service_id",name="uq_survey_service"),)
+    id: Mapped[int] = mapped_column(primary_key=True)
+    survey_id: Mapped[int] = mapped_column(ForeignKey("surveys.id", ondelete="CASCADE"), index=True)
+    service_id: Mapped[int] = mapped_column(ForeignKey("services.id", ondelete="CASCADE"), index=True)
+    survey = relationship("Survey", back_populates="service_assignments")
+
+class SurveyResponse(Base, TimestampMixin):
+    __tablename__="survey_responses"
+    __table_args__=(UniqueConstraint("survey_id","submission_id",name="uq_survey_submission_response"),)
+    id: Mapped[int] = mapped_column(primary_key=True)
+    survey_id: Mapped[int] = mapped_column(ForeignKey("surveys.id", ondelete="CASCADE"), index=True)
+    service_id: Mapped[int|None] = mapped_column(ForeignKey("services.id"), nullable=True, index=True)
+    submission_id: Mapped[int|None] = mapped_column(ForeignKey("submissions.id"), nullable=True, index=True)
+    respondent_name: Mapped[str|None] = mapped_column(String(180), nullable=True)
+    respondent_email: Mapped[str|None] = mapped_column(String(180), nullable=True)
+    answers = relationship("SurveyAnswer", back_populates="response", cascade="all, delete-orphan")
+
+class SurveyAnswer(Base, TimestampMixin):
+    __tablename__="survey_answers"
+    __table_args__=(UniqueConstraint("response_id","question_id",name="uq_response_question"),)
+    id: Mapped[int] = mapped_column(primary_key=True)
+    response_id: Mapped[int] = mapped_column(ForeignKey("survey_responses.id", ondelete="CASCADE"), index=True)
+    question_id: Mapped[int] = mapped_column(ForeignKey("survey_questions.id", ondelete="CASCADE"), index=True)
+    value: Mapped[dict] = mapped_column(JSON, default=dict)
+    response = relationship("SurveyResponse", back_populates="answers")
