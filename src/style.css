@@ -167,6 +167,15 @@ td b{font:700 11px 'Manrope'}
 .login-card label input{display:block;width:100%;margin-top:6px;border:1px solid var(--line);border-radius:9px;padding:11px;outline:0}
 .login-card label input:focus{border-color:#b38a52}
 .login-card>small{display:block;margin-top:12px;text-align:center;color:#9a8e86;font-size:8px;line-height:1.5}
+.form-error{background:#fdecea;color:#b3261e;border:1px solid #f5c6c2;border-radius:8px;padding:10px 12px;font-size:10px;font-weight:700;margin-bottom:12px}
+.login-profile{display:flex;align-items:center;gap:12px;background:#faf6f0;border:1px solid var(--line);border-radius:12px;padding:14px;margin:18px 0}
+.login-profile .service-icon{background:var(--gold);color:#2f2119}
+.login-profile>div{display:flex;flex-direction:column}
+.login-profile b{font:800 12px 'Manrope';color:#3a2b21}
+.login-profile span{font-size:10px;color:#8c7f76;margin-top:2px}
+.login-card button[disabled]{opacity:.6;cursor:not-allowed}
+.login-card form{display:block}
+
 
 .prose{max-width:950px}
 .prose>h2{font:800 27px 'Manrope'}
