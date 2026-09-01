@@ -11,3 +11,4 @@ coverage/
 .vercel/
 *.tsbuildinfo
 node_modules.incomplete/
+.vercel
