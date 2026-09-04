@@ -9,6 +9,8 @@ import {
 import { BrowserRouter, Link, Navigate, Route, Routes, useParams } from 'react-router-dom';
 import { AuthProvider, useAuth } from './hooks/useAuth';
 import PublicConsultationForm from './pages/PublicConsultationForm';
+import { LiveDashboard } from './pages/LiveDashboard';
+import './dashboard.css';
 
 type Category = 'Pelaporan' | 'Perizinan & Travel' | 'Edukasi';
 type Service = {
@@ -67,19 +69,21 @@ function TravelDirectory(){const [query,setQuery]=useState('');const travel=[['P
 function EducationPage(){return <Layout><PageHero kicker="Pusat edukasi" title="Panduan Jemaah Haji & Umrah" text="Temukan referensi fikih, tutorial manasik, dan bacaan doa dalam satu pusat pengetahuan."/><section className="section"><div className="education-grid">{services.filter(s=>s.category==='Edukasi').map(s=><ServiceCard service={s} key={s.slug}/>)}</div><div className="knowledge-panel"><div><BookOpenText size={28}/><h2>Konten resmi, mudah dicari, mudah dipelajari.</h2><p>Konten edukasi tersedia untuk masyarakat tanpa harus masuk ke area petugas, sehingga materi dapat diakses dengan cepat saat dibutuhkan.</p></div><Link to="/layanan/tanya-jawab-fikih-haji" className="btn light">Mulai dari fikih haji</Link></div></section></Layout>}
 
 function LoginPage(){
-  const { login, isAuth, user, logout } = useAuth();
+  const { login, isAuth, user } = useAuth();
   const [email,setEmail]=useState('');
   const [password,setPassword]=useState('');
   const [error,setError]=useState('');
   const [loading,setLoading]=useState(false);
   async function onSubmit(e:React.FormEvent){e.preventDefault();setError('');setLoading(true);try{await login(email,password)}catch(err){setError(err instanceof Error?err.message:'Gagal masuk')}finally{setLoading(false)}}
+  const dest = user?.role === 'admin' ? '/admin' : user?.role === 'konsultan' ? '/konsultan' : '/dashboard';
+  if (isAuth && user) return <Navigate to={dest} replace />;
   return <Layout><section className="login-section"><div className="login-card"><div className="login-brand"><span className="brand-mark">KH</span><div><b>Area Petugas</b><span>Kemenhaj Provinsi Riau</span></div></div>
-  {isAuth&&user?(<><h1>Berhasil masuk</h1><p>Anda masuk sebagai <b>{user.name}</b> ({user.role}).</p><div className="login-profile"><span className="service-icon"><Users size={20}/></span><div><b>{user.email}</b><span>Peran: {user.role}</span></div></div><button className="btn primary full" onClick={logout}>Keluar</button></>):(<><h1>Masuk ke sistem</h1><p>Akses dashboard operasional, register laporan, dan tindak lanjut layanan.</p><form onSubmit={onSubmit}>{error&&<div className="form-error" role="alert">{error}</div>}<label>Email<input type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="nama@kemenhaj.go.id" required/></label><label>Kata sandi<input type="password" value={password} onChange={e=>setPassword(e.target.value)} placeholder="••••••••" required/></label><button className="btn primary full" disabled={loading}>{loading?'Memproses...':'Masuk'} <ArrowRight size={16}/></button></form><small>Akses diberikan sesuai akun dan kewenangan petugas yang terdaftar.</small></>)}
+  <><h1>Masuk ke sistem</h1><p>Akses dashboard operasional, register laporan, dan tindak lanjut layanan.</p><form onSubmit={onSubmit}>{error&&<div className="form-error" role="alert">{error}</div>}<label>Email<input type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="nama@kemenhaj.go.id" required/></label><label>Kata sandi<input type="password" value={password} onChange={e=>setPassword(e.target.value)} placeholder="••••••••" required/></label><button className="btn primary full" disabled={loading}>{loading?'Memproses...':'Masuk'} <ArrowRight size={16}/></button></form><small>Akses diberikan sesuai akun dan kewenangan petugas yang terdaftar.</small></>
   </div></section></Layout>}
 
 function AboutPage(){return <Layout><PageHero kicker="Tentang portal" title="Layanan digital yang mengikuti proses kerja nyata" text="Portal ini dirancang sebagai kanal operasional, bukan sekadar halaman informasi."/><section className="section prose"><h2>Prinsip desain layanan</h2><p>Setiap jenis pelaporan memiliki jalur sendiri, data perizinan diperlakukan sebagai pengajuan dokumen dan konsultasi, direktori travel menjadi layanan publik, dan area petugas dipisahkan dari akses masyarakat.</p><div className="principle-grid"><div><ShieldCheck/><b>Terstruktur</b><span>Data mengikuti tipe layanan dan mudah diaudit.</span></div><div><FileText/><b>Dapat ditelusuri</b><span>Setiap kiriman memiliki nomor referensi dan status.</span></div><div><Users/><b>Berbasis peran</b><span>Akses publik, penyelenggara, dan petugas dibedakan.</span></div></div></section></Layout>}
 
 function PageHero({kicker,title,text}:{kicker:string;title:string;text:string}){return <section className="page-hero"><span className="kicker">{kicker}</span><h1>{title}</h1><p>{text}</p></section>}
 
-function App(){return <AuthProvider><BrowserRouter><Routes><Route path="/" element={<HomePage/>}/><Route path="/layanan" element={<ServicesPage/>}/><Route path="/layanan/:slug" element={<ServiceDetail/>}/><Route path="/layanan/:slug/pengajuan" element={<PublicConsultationForm/>}/><Route path="/direktori-travel" element={<TravelDirectory/>}/><Route path="/edukasi" element={<EducationPage/>}/><Route path="/masuk" element={<LoginPage/>}/><Route path="/tentang" element={<AboutPage/>}/><Route path="*" element={<Navigate to="/" replace/>}/></Routes></BrowserRouter></AuthProvider>}
+function App(){return <AuthProvider><BrowserRouter><Routes><Route path="/" element={<HomePage/>}/><Route path="/layanan" element={<ServicesPage/>}/><Route path="/layanan/:slug" element={<ServiceDetail/>}/><Route path="/layanan/:slug/pengajuan" element={<PublicConsultationForm/>}/><Route path="/direktori-travel" element={<TravelDirectory/>}/><Route path="/edukasi" element={<EducationPage/>}/><Route path="/masuk" element={<LoginPage/>}/><Route path="/tentang" element={<AboutPage/>}/><Route path="/dashboard/*" element={<LiveDashboard base="/dashboard"/>}/><Route path="/konsultan/*" element={<LiveDashboard base="/konsultan"/>}/><Route path="/admin/*" element={<LiveDashboard base="/admin"/>}/><Route path="*" element={<Navigate to="/" replace/>}/></Routes></BrowserRouter></AuthProvider>}
 export default App;
