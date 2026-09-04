@@ -68,8 +68,8 @@ export default function PublicConsultationForm() {
     <main className="login-section">
       <div className="login-card">
         <div className="login-brand">
-          <span className="brand-mark">KH</span>
-          <div><b>Pengajuan Layanan</b><span>Kemenhaj Provinsi Riau</span></div>
+          <img className="brand-logo" src="/logo-kemenhaj.png" alt="Logo Kemenhaj Riau"/>
+          <div><b>Pengajuan Layanan</b><span>Kantor Wilayah Kemenhaj Provinsi Riau</span></div>
         </div>
 
         {!success ? (

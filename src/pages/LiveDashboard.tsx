@@ -110,7 +110,7 @@ export function DashboardShell({ base, children }: { base: string; children: Rea
     <div className="dash-shell">
       <aside className={`dash-sidebar ${open ? 'open' : ''}`}>
         <div className="dash-side-top">
-          <Link to="/" className="dash-brand"><span className="brand-mark">KH</span><span><b>KEMENHAJ</b><small>Portal Riau</small></span></Link>
+          <Link to="/" className="dash-brand"><img className="brand-logo" src="/logo-kemenhaj.png" alt="Logo Kemenhaj Riau"/><span className="brand-copy"><b>KEMENHAJ&nbsp;Riau</b><small>Portal Riau</small></span></Link>
           <div className="dash-role"><Users size={14} /> {roleLabel}</div>
         </div>
         <nav className="dash-nav">

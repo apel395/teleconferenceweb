@@ -20,10 +20,11 @@ main{min-height:60vh}
 .site-header{height:76px;position:sticky;top:0;z-index:50;background:rgba(255,255,255,.94);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
 .header-inner{max-width:1240px;height:100%;margin:auto;padding:0 24px;display:flex;align-items:center;gap:34px}
 .brand{display:flex;align-items:center;gap:11px;min-width:max-content}
+.brand-logo{width:46px;height:46px;object-fit:contain;flex:0 0 auto}
 .brand-mark{width:42px;height:42px;display:grid;place-items:center;border-radius:12px;background:linear-gradient(145deg,var(--brown),#65452f);color:#e8cc8b;font:800 13px 'Manrope';letter-spacing:.03em;box-shadow:inset 0 0 0 1px rgba(255,255,255,.1)}
-.brand>span:last-child{display:flex;flex-direction:column}
-.brand b{font:800 15px 'Manrope';letter-spacing:.05em;color:var(--brown)}
-.brand small{font-size:9px;color:#8b7e75;margin-top:2px}
+.brand>span:last-child,.brand-copy{display:flex;flex-direction:column}
+.brand-copy b{font:800 15px 'Manrope';letter-spacing:.02em;color:var(--brown);line-height:1.15}
+.brand-copy small{font-size:8.5px;color:#8b7e75;margin-top:2px;line-height:1.35}
 .main-nav{display:flex;align-items:center;gap:28px;margin-left:auto}
 .main-nav a{font-size:12px;font-weight:700;color:#6f655f;padding:29px 0 25px;border-bottom:2px solid transparent}
 .main-nav a:hover{color:var(--brown);border-color:var(--gold)}
@@ -158,6 +159,7 @@ td b{font:700 11px 'Manrope'}
 .login-section{min-height:680px;display:grid;place-items:center;padding:60px 20px;background:radial-gradient(circle at 50% 20%,#efe0c6,transparent 38%),var(--cream)}
 .login-card{width:min(100%,430px);background:#fff;border:1px solid var(--line);border-radius:18px;padding:30px;box-shadow:var(--shadow)}
 .login-brand{display:flex;align-items:center;gap:10px}
+.login-brand .brand-logo{width:38px;height:38px;object-fit:contain}
 .login-brand>div{display:flex;flex-direction:column}
 .login-brand b{font:700 12px 'Manrope'}
 .login-brand span{font-size:9px;color:#8c7f76}
@@ -185,11 +187,21 @@ td b{font:700 11px 'Manrope'}
 .principle-grid svg{color:#8a653e}
 .principle-grid b{font:700 12px 'Manrope'}
 .principle-grid span{font-size:9px;line-height:1.5;color:#857970}
+.contact-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:24px}
+.contact-grid>div{border:1px solid var(--line);background:#fff;border-radius:13px;padding:18px;display:flex;flex-direction:column;gap:8px}
+.contact-grid svg{color:#8a653e}
+.contact-grid b{font:700 12px 'Manrope'}
+.contact-grid span{font-size:9px;line-height:1.55;color:#857970}
+.contact-grid a{color:#8a653e;text-decoration:underline}
 
 .site-footer{background:#2d1d15;color:#d7cdc7;padding:48px 24px 20px}
 .footer-grid{max-width:1192px;margin:auto;display:grid;grid-template-columns:2fr 1fr 1fr 1.4fr;gap:45px}
-.site-footer .brand b{color:#fff}
-.site-footer .brand small{color:#a99990}
+.site-footer .brand-copy b{color:#fff}
+.site-footer .brand-copy small{color:#a99990}
+.footer-contact{margin-top:15px;display:flex;flex-direction:column;gap:4px;font-size:9px;line-height:1.55}
+.footer-contact span{color:#b8aaa3}
+.footer-contact strong{color:#e8cc8b;font-size:9.5px}
+.footer-contact a{color:#e8cc8b;text-decoration:underline}
 .footer-grid>div>p{color:#aa9c94;font-size:9px;line-height:1.65;max-width:380px}
 .footer-grid>div>b{display:block;color:#fff;font:700 11px 'Manrope';margin-bottom:13px}
 .footer-grid>div>a{display:block;font-size:9px;color:#b8aaa3;margin:9px 0}

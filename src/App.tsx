@@ -4,7 +4,7 @@ import {
   CheckCircle2, ChevronRight, ClipboardCheck, ClipboardList, FileCheck2,
   FilePlus2, FileText, GraduationCap, Home, Landmark, ListChecks,
   LogIn, MapPinned, Menu, MessageCircleQuestion, MoonStar, Plane,
-  Search, ShieldCheck, Users, X
+  Search, ShieldCheck, Users, X, Phone, Globe, Mail
 } from 'lucide-react';
 import { BrowserRouter, Link, Navigate, Route, Routes, useParams } from 'react-router-dom';
 import { AuthProvider, useAuth } from './hooks/useAuth';
@@ -47,12 +47,23 @@ const categories: {name:Category; desc:string; icon:typeof FileText}[] = [
   {name:'Edukasi', desc:'Fikih, manasik, dan doa sebagai pusat pengetahuan resmi bagi jemaah.', icon:BookOpenText},
 ];
 
-function Header(){
-  const [open,setOpen]=useState(false);
-  return <header className="site-header"><div className="header-inner"><Link to="/" className="brand"><span className="brand-mark">KH</span><span><b>KEMENHAJ</b><small>Kantor Wilayah Provinsi Riau</small></span></Link><nav className={open?'main-nav open':'main-nav'}><Link to="/" onClick={()=>setOpen(false)}>Beranda</Link><Link to="/layanan" onClick={()=>setOpen(false)}>Layanan</Link><Link to="/direktori-travel" onClick={()=>setOpen(false)}>Direktori Travel</Link><Link to="/edukasi" onClick={()=>setOpen(false)}>Edukasi Jemaah</Link><Link to="/tentang" onClick={()=>setOpen(false)}>Tentang</Link></nav><div className="header-actions"><Link to="/masuk" className="btn ghost"><LogIn size={16}/> Masuk</Link><Link to="/layanan" className="btn primary">Mulai layanan <ArrowRight size={16}/></Link></div><button className="mobile-menu" onClick={()=>setOpen(!open)} aria-label="Buka menu">{open?<X/>:<Menu/>}</button></div></header>
+const ORG_NAME='Kementerian Haji dan Umrah RI';
+const ORG_OFFICE='Kantor Wilayah Kementerian Haji dan Umrah Provinsi Riau';
+const ORG_ADDRESS='Jl. Mustafa Sari (Komplek Hotel Ratu Mayang Garden)';
+const ORG_PHONE='0821-8428-2450';
+const ORG_WEB='https://riau.haji.go.id';
+const ORG_EMAIL='riau@haji.go.id';
+
+function Brand({light}:{light?:boolean}){
+  return <Link to="/" className={'brand'+(light?' light':'')} aria-label={ORG_OFFICE}><img className="brand-logo" src="/logo-kemenhaj.png" alt="Logo Kemenhaj Riau"/><span className="brand-copy"><b>KEMENHAJ&nbsp;Riau</b><small>{light?ORG_OFFICE:'Kantor Wilayah Provinsi Riau'}</small></span></Link>;
 }
 
-function Footer(){return <footer className="site-footer"><div className="footer-grid"><div className="footer-brand"><div className="brand"><span className="brand-mark">KH</span><span><b>KEMENHAJ</b><small>Kantor Wilayah Provinsi Riau</small></span></div><p>Portal layanan digital untuk pelaporan, administrasi penyelenggara, dan edukasi haji & umrah di Provinsi Riau.</p></div><div><b>Layanan</b><Link to="/layanan">Semua layanan</Link><Link to="/direktori-travel">Direktori travel</Link><Link to="/edukasi">Edukasi jemaah</Link></div><div><b>Informasi</b><Link to="/tentang">Tentang layanan</Link><Link to="/layanan/permasalahan-umrah-haji-khusus">Laporkan masalah</Link><Link to="/masuk">Area petugas</Link></div><div><b>Prinsip layanan</b><p>Data terstruktur, status dapat ditelusuri, dan proses administrasi tetap mengikuti ketentuan serta verifikasi petugas.</p></div></div><div className="footer-bottom"><span>© 2026 Kemenhaj Provinsi Riau</span><span>Portal Layanan Haji & Umrah</span></div></footer>}
+function Header(){
+  const [open,setOpen]=useState(false);
+  return <header className="site-header"><div className="header-inner"><Brand/><nav className={open?'main-nav open':'main-nav'}><Link to="/" onClick={()=>setOpen(false)}>Beranda</Link><Link to="/layanan" onClick={()=>setOpen(false)}>Layanan</Link><Link to="/direktori-travel" onClick={()=>setOpen(false)}>Direktori Travel</Link><Link to="/edukasi" onClick={()=>setOpen(false)}>Edukasi Jemaah</Link><Link to="/tentang" onClick={()=>setOpen(false)}>Tentang</Link></nav><div className="header-actions"><Link to="/masuk" className="btn ghost"><LogIn size={16}/> Masuk</Link><Link to="/layanan" className="btn primary">Mulai layanan <ArrowRight size={16}/></Link></div><button className="mobile-menu" onClick={()=>setOpen(!open)} aria-label="Buka menu">{open?<X/>:<Menu/>}</button></div></header>
+}
+
+function Footer(){return <footer className="site-footer"><div className="footer-grid"><div className="footer-brand"><Brand light/><p>Portal layanan digital untuk pelaporan, administrasi penyelenggara, dan edukasi haji & umrah di Provinsi Riau.</p><div className="footer-contact"><span><strong>{ORG_NAME}</strong></span><span>{ORG_OFFICE}</span><span>{ORG_ADDRESS}, Pekanbaru, Riau</span><span>Telp: {ORG_PHONE}</span><span><a href={ORG_WEB} target="_blank" rel="noreferrer">{ORG_WEB}</a> · <a href={'mailto:'+ORG_EMAIL}>{ORG_EMAIL}</a></span></div></div><div><b>Layanan</b><Link to="/layanan">Semua layanan</Link><Link to="/direktori-travel">Direktori travel</Link><Link to="/edukasi">Edukasi jemaah</Link></div><div><b>Informasi</b><Link to="/tentang">Tentang layanan</Link><Link to="/layanan/permasalahan-umrah-haji-khusus">Laporkan masalah</Link><Link to="/masuk">Area petugas</Link></div><div><b>Prinsip layanan</b><p>Data terstruktur, status dapat ditelusuri, dan proses administrasi tetap mengikuti ketentuan serta verifikasi petugas.</p></div></div><div className="footer-bottom"><span>© 2026 {ORG_OFFICE}</span><span>Portal Layanan Haji & Umrah · {ORG_WEB}</span></div></footer>}
 
 function Layout({children}:{children:React.ReactNode}){ return <><Header/><main>{children}</main><Footer/></> }
 
@@ -77,11 +88,11 @@ function LoginPage(){
   async function onSubmit(e:React.FormEvent){e.preventDefault();setError('');setLoading(true);try{await login(email,password)}catch(err){setError(err instanceof Error?err.message:'Gagal masuk')}finally{setLoading(false)}}
   const dest = user?.role === 'admin' ? '/admin' : user?.role === 'konsultan' ? '/konsultan' : '/dashboard';
   if (isAuth && user) return <Navigate to={dest} replace />;
-  return <Layout><section className="login-section"><div className="login-card"><div className="login-brand"><span className="brand-mark">KH</span><div><b>Area Petugas</b><span>Kemenhaj Provinsi Riau</span></div></div>
+  return <Layout><section className="login-section"><div className="login-card"><div className="login-brand"><img className="brand-logo" src="/logo-kemenhaj.png" alt="Logo Kemenhaj Riau"/><div><b>Area Petugas</b><span>Kantor Wilayah Kemenhaj Provinsi Riau</span></div></div>
   <><h1>Masuk ke sistem</h1><p>Akses dashboard operasional, register laporan, dan tindak lanjut layanan.</p><form onSubmit={onSubmit}>{error&&<div className="form-error" role="alert">{error}</div>}<label>Email<input type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="nama@kemenhaj.go.id" required/></label><label>Kata sandi<input type="password" value={password} onChange={e=>setPassword(e.target.value)} placeholder="••••••••" required/></label><button className="btn primary full" disabled={loading}>{loading?'Memproses...':'Masuk'} <ArrowRight size={16}/></button></form><small>Akses diberikan sesuai akun dan kewenangan petugas yang terdaftar.</small></>
   </div></section></Layout>}
 
-function AboutPage(){return <Layout><PageHero kicker="Tentang portal" title="Layanan digital yang mengikuti proses kerja nyata" text="Portal ini dirancang sebagai kanal operasional, bukan sekadar halaman informasi."/><section className="section prose"><h2>Prinsip desain layanan</h2><p>Setiap jenis pelaporan memiliki jalur sendiri, data perizinan diperlakukan sebagai pengajuan dokumen dan konsultasi, direktori travel menjadi layanan publik, dan area petugas dipisahkan dari akses masyarakat.</p><div className="principle-grid"><div><ShieldCheck/><b>Terstruktur</b><span>Data mengikuti tipe layanan dan mudah diaudit.</span></div><div><FileText/><b>Dapat ditelusuri</b><span>Setiap kiriman memiliki nomor referensi dan status.</span></div><div><Users/><b>Berbasis peran</b><span>Akses publik, penyelenggara, dan petugas dibedakan.</span></div></div></section></Layout>}
+function AboutPage(){return <Layout><PageHero kicker="Tentang portal" title="Layanan digital yang mengikuti proses kerja nyata" text="Portal ini dirancang sebagai kanal operasional, bukan sekadar halaman informasi."/><section className="section prose"><h2>Prinsip desain layanan</h2><p>Setiap jenis pelaporan memiliki jalur sendiri, data perizinan diperlakukan sebagai pengajuan dokumen dan konsultasi, direktori travel menjadi layanan publik, dan area petugas dipisahkan dari akses masyarakat.</p><div className="principle-grid"><div><ShieldCheck/><b>Terstruktur</b><span>Data mengikuti tipe layanan dan mudah diaudit.</span></div><div><FileText/><b>Dapat ditelusuri</b><span>Setiap kiriman memiliki nomor referensi dan status.</span></div><div><Users/><b>Berbasis peran</b><span>Akses publik, penyelenggara, dan petugas dibedakan.</span></div></div></section><section className="section prose"><h2>Kontak kantor resmi</h2><div className="contact-grid"><div><MapPinned/><b>{ORG_NAME}</b><span>{ORG_OFFICE}<br/>{ORG_ADDRESS}, Pekanbaru, Riau</span></div><div><Phone/><b>Telepon</b><span>{ORG_PHONE}</span></div><div><Globe/><b>Website</b><span><a href={ORG_WEB} target="_blank" rel="noreferrer">{ORG_WEB}</a></span></div><div><Mail/><b>Email</b><span><a href={'mailto:'+ORG_EMAIL}>{ORG_EMAIL}</a></span></div></div></section></Layout>}
 
 function PageHero({kicker,title,text}:{kicker:string;title:string;text:string}){return <section className="page-hero"><span className="kicker">{kicker}</span><h1>{title}</h1><p>{text}</p></section>}
 

@@ -4,9 +4,9 @@
 .dash-sidebar{width:250px;flex:0 0 250px;background:linear-gradient(180deg,#2d1d15,#3b271c);color:#e9dfd8;display:flex;flex-direction:column;position:sticky;top:0;height:100vh}
 .dash-side-top{padding:22px 20px 16px;border-bottom:1px solid rgba(255,255,255,.09)}
 .dash-brand{display:flex;align-items:center;gap:11px;color:#fff}
-.dash-brand .brand-mark{width:40px;height:40px;background:linear-gradient(145deg,#4b3526,#6a4a33);color:#e8cc8b}
-.dash-brand b{font:800 14px 'Manrope';letter-spacing:.04em}
-.dash-brand small{display:block;font-size:9px;color:#bfaea3;margin-top:2px}
+.dash-brand .brand-logo{width:40px;height:40px;object-fit:contain;flex:0 0 auto}
+.dash-brand .brand-copy b{font:800 14px 'Manrope';letter-spacing:.04em;color:#fff}
+.dash-brand .brand-copy small{display:block;font-size:9px;color:#bfaea3;margin-top:2px}
 .dash-role{align-items:center;margin-top:14px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:8px 10px;display:flex;gap:8px;font-size:10px;font-weight:700;color:#e2c47e}
 .dash-nav{flex:1;padding:16px 12px;overflow-y:auto}
 .dash-nav a{display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:9px;color:#cbbdb5;font-size:12px;font-weight:600;margin-bottom:3px;transition:.15s}
