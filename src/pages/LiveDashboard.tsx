@@ -628,18 +628,40 @@ export function LiveDashboard({ base }: { base: string }) {
 
   if (!user) return <AuthGuard />;
   if (isStaff && user.role !== role && user.role !== 'admin') return <AuthGuard />;
-  if (!isStaff && user.role === 'admin') return <Navigate to="/admin" replace />;
-  if (base === '/konsultan' && user.role === 'admin') return null;
+  if (!isStaff && user.role !== role) return <AuthGuard />;
+  if (role === 'admin' && user.role === 'admin') return (
+    <DashboardShell base={base}>
+      <Routes>
+        <Route path="" element={<Overview base={base} />} />
+        <Route path="pengajuan" element={<Submissions base={base} />} />
+        <Route path="konsultasi" element={<ConsultationList base={base} />} />
+        <Route path="konsultasi/:id" element={<ConsultationDetail base={base} />} />
+        <Route path="meeting/:id" element={<MeetingView base={base} />} />
+      </Routes>
+    </DashboardShell>
+  );
+  if (role === 'konsultan' && user.role === 'admin') return <Navigate to={`${base.replace('konsultan', 'admin')}`} replace />;
+  if (role === 'konsultan' && user.role === 'konsultan') return (
+    <DashboardShell base={base}>
+      <Routes>
+        <Route path="" element={<Overview base={base} />} />
+        <Route path="penjadwalan" element={<SchedulingView base={base} />} />
+        <Route path="konsultasi" element={<ConsultationList base={base} />} />
+        <Route path="konsultasi/:id" element={<ConsultationDetail base={base} />} />
+        <Route path="meeting/:id" element={<MeetingView base={base} />} />
+      </Routes>
+    </DashboardShell>
+  );
+  if (role === 'pengguna' && user.role === 'admin') return <Navigate to="/admin" replace />;
+  if (role === 'pengguna' && user.role === 'konsultan') return <Navigate to="/konsultan" replace />;
 
   return (
     <DashboardShell base={base}>
       <Routes>
         <Route path="" element={<Overview base={base} />} />
-        {role === 'admin' && <Route path="pengajuan" element={<Submissions base={base} />} />}
         <Route path="konsultasi" element={<ConsultationList base={base} />} />
         <Route path="konsultasi/:id" element={<ConsultationDetail base={base} />} />
         <Route path="meeting/:id" element={<MeetingView base={base} />} />
-        {role === 'konsultan' && <Route path="penjadwalan" element={<SchedulingView base={base} />} />}
       </Routes>
     </DashboardShell>
   );
