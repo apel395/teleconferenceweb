@@ -19,11 +19,18 @@ const services: ServiceSummary[] = [
   { slug:'perizinan-ppiu', title:'Pengajuan Perizinan PPIU' },
   { slug:'perizinan-kbihu', title:'Pengajuan Perizinan KBIHU' },
   { slug:'izin-cabang-ppiu', title:'Pelaporan Izin Cabang PPIU' },
-  { slug:'direktori-travel-umrah', title:'Direktori Travel Umrah' },
 ];
+
+const noFormRedirect: Record<string,string> = {
+  'direktori-travel-umrah': '/direktori-travel',
+  'bacaan-doa': '/edukasi',
+  'tutorial-manasik': '/edukasi',
+  'tanya-jawab-fikih-haji': '/edukasi',
+};
 
 export default function PublicConsultationForm() {
   const { slug } = useParams();
+  if (slug && noFormRedirect[slug]) return <Navigate to={noFormRedirect[slug]} replace />;
   const matched = services.find((s) => s.slug === slug);
 
   const [name, setName] = useState('');
