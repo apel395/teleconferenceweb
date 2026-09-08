@@ -274,6 +274,83 @@ function Overview({ base }: { base: string }) {
   );
 }
 
+/* ---------- Scheduling (konsultan) ---------- */
+function SchedulingView({ base }: { base: string }) {
+  const { list, loading, reload } = useConsultations();
+  const [q, setQ] = useState('');
+  const [schedAt, setSchedAt] = useState<Record<string, string>>({});
+  const [busy, setBusy] = useState<Record<string, boolean>>({});
+  const [msg, setMsg] = useState<Record<string, { ok: boolean; text: string }>>({});
+
+  const waiting = list
+    .filter((c) => c.status === 'menunggu')
+    .filter((c) => `${c.topic} ${c.reference || ''} ${nameOf(c)}`.toLowerCase().includes(q.toLowerCase()));
+
+  function jadwalkan(c: Consultation) {
+    const at = schedAt[c.id];
+    if (!at) { setMsg((m) => ({ ...m, [c.id]: { ok: false, text: 'Pilih tanggal dan waktu pertemuan dahulu.' } })); return; }
+    setBusy((b) => ({ ...b, [c.id]: true }));
+    setMsg((m) => ({ ...m, [c.id]: { ok: true, text: '' } }));
+    api<{ meeting: Meeting }>('/meetings', { method: 'POST', body: { consultation_id: c.id, scheduled_at: new Date(at).toISOString() } })
+      .then(() => { setMsg((m) => ({ ...m, [c.id]: { ok: true, text: 'Jadwal dibuat. Ruang video Jitsi otomatis tersedia.' } })); setSchedAt((s) => ({ ...s, [c.id]: '' })); reload(); })
+      .catch((e: Error) => setMsg((m) => ({ ...m, [c.id]: { ok: false, text: e.message } })))
+      .finally(() => setBusy((b) => ({ ...b, [c.id]: false })));
+  }
+
+  return (
+    <>
+      <div className="dash-section-title">Penjadwalan pertemuan</div>
+      <div className="dash-panel" style={{ paddingBottom: 8 }}>
+        <div className="dash-panel-head">
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <h3>Pengajuan menunggu jadwal</h3>
+            <span className="count">{waiting.length}</span>
+          </div>
+          <button className="btn ghost2 sm" onClick={reload}><RefreshCw size={14} /> Muat ulang</button>
+        </div>
+        <div className="search-box" style={{ width: '100%', maxWidth: 'none', margin: '0 0 14px' }}>
+          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Cari ref, topik, atau pemohon…" />
+        </div>
+        {loading ? (
+          <div className="empty-live"><b>Memuat…</b></div>
+        ) : waiting.length === 0 ? (
+          <div className="empty-live"><ClipboardList size={26} /><b>Tidak ada pengajuan menunggu</b><span>Semua permintaan sudah dijadwalkan.</span></div>
+        ) : (
+          <div className="table-wrap-live">
+            <table className="table-live">
+              <thead><tr><th>Ref</th><th>Topik / pemohon</th><th>Status</th><th>Jadwal pertemuan (WIB)</th><th></th></tr></thead>
+              <tbody>
+                {waiting.map((c) => (
+                  <tr key={c.id}>
+                    <td><b>{c.reference || '—'}</b></td>
+                    <td>
+                      <div style={{ fontWeight: 700, fontSize: 12 }}>{c.topic}</div>
+                      <small style={{ color: '#9a8c83', fontSize: 10 }}>
+                        {nameOf(c)}{c.preferred_date ? ` · ${fmtDate(c.preferred_date)}${c.preferred_time ? ` ${c.preferred_time}` : ''}` : ' · tanpa preferensi'}
+                      </small>
+                    </td>
+                    <td>{statusPill(c.status)}</td>
+                    <td>
+                      <input type="datetime-local" value={schedAt[c.id] || ''} onChange={(e) => setSchedAt((s) => ({ ...s, [c.id]: e.target.value }))} style={{ maxWidth: 215 }} />
+                      {msg[c.id]?.text && <small style={{ display: 'block', color: msg[c.id].ok ? 'var(--green)' : 'var(--red)', fontSize: 10, marginTop: 4 }}>{msg[c.id].text}</small>}
+                    </td>
+                    <td>
+                      <div style={{ display: 'flex', gap: 8 }}>
+                        <button className="btn gold sm" disabled={busy[c.id]} onClick={() => jadwalkan(c)}>{busy[c.id] ? 'Membuat…' : 'Jadwalkan'} <CalendarPlus size={14} /></button>
+                        <Link className="btn ghost2 sm" to={`${base}/konsultasi/${c.id}`}>Detail</Link>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </>
+  );
+}
+
 /* ---------- Consultation list ---------- */
 function ConsultationList({ base }: { base: string }) {
   const { list, loading, error, reload } = useConsultations();
@@ -562,7 +639,7 @@ export function LiveDashboard({ base }: { base: string }) {
         <Route path="konsultasi" element={<ConsultationList base={base} />} />
         <Route path="konsultasi/:id" element={<ConsultationDetail base={base} />} />
         <Route path="meeting/:id" element={<MeetingView base={base} />} />
-        {role === 'konsultan' && <Route path="penjadwalan" element={<ConsultationList base={base} />} />}
+        {role === 'konsultan' && <Route path="penjadwalan" element={<SchedulingView base={base} />} />}
       </Routes>
     </DashboardShell>
   );

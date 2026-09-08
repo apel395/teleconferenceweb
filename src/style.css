@@ -170,6 +170,28 @@ td b{font:700 11px 'Manrope'}
 .login-card label input:focus{border-color:#b38a52}
 .login-card>small{display:block;margin-top:12px;text-align:center;color:#9a8e86;font-size:8px;line-height:1.5}
 .form-error{background:#fdecea;color:#b3261e;border:1px solid #f5c6c2;border-radius:8px;padding:10px 12px;font-size:10px;font-weight:700;margin-bottom:12px}
+.track-wrap{max-width:760px;margin:auto;display:grid;gap:22px}
+.track-form{background:#fff;border:1px solid var(--line);border-radius:14px;padding:26px;display:grid;gap:14px}
+.track-form label{display:block;font-size:9px;font-weight:800;color:#655850}
+.track-form input{display:block;width:100%;margin-top:6px;border:1px solid var(--line);border-radius:9px;padding:11px;outline:0;font:inherit}
+.track-form input:focus{border-color:#b38a52}
+.track-form .btn{justify-self:start}
+.track-result{background:#fff;border:1px solid var(--line);border-radius:14px;padding:26px;display:grid;gap:16px}
+.track-head{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}
+.track-head b{font:800 16px 'Manrope';color:#33251d;display:block}
+.track-head span{font-size:11px;color:#776c65;display:block;margin-top:3px}
+.track-status{font-size:10px;font-weight:800;padding:6px 12px;border-radius:999px;background:var(--gold-soft);color:#9a733c}
+.track-status.selesai{background:var(--green-soft);color:var(--green)}
+.track-status.berlangsung{background:var(--red-soft);color:var(--red)}
+.track-status.dibatalkan{background:var(--red-soft);color:var(--red)}
+.track-result dl{display:grid;gap:12px;margin:0}
+.track-result dl>div{display:grid;grid-template-columns:150px 1fr;gap:12px;font-size:11px}
+.track-result dt{color:#9a8e86;font-weight:700}
+.track-result dd{color:#4a3d34;margin:0;line-height:1.6}
+.track-wait{display:flex;align-items:flex-start;gap:10px;background:var(--gold-soft);border-radius:10px;padding:14px;font-size:11px;color:#6f5a3a}
+.track-notes{background:var(--green-soft);border-radius:10px;padding:14px;font-size:11px;color:#3f5c47;line-height:1.6}
+.track-frame{height:460px}
+@media(max-width:560px){.track-result dl>div{grid-template-columns:1fr;gap:2px}}
 .login-profile{display:flex;align-items:center;gap:12px;background:#faf6f0;border:1px solid var(--line);border-radius:12px;padding:14px;margin:18px 0}
 .login-profile .service-icon{background:var(--gold);color:#2f2119}
 .login-profile>div{display:flex;flex-direction:column}

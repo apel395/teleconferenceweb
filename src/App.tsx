@@ -4,10 +4,11 @@ import {
   CheckCircle2, ChevronRight, ClipboardCheck, ClipboardList, FileCheck2,
   FilePlus2, FileText, GraduationCap, Home, Landmark, ListChecks,
   LogIn, MapPinned, Menu, MessageCircleQuestion, MoonStar, Plane,
-  Search, ShieldCheck, Users, X, Phone, Globe, Mail
+  Search, ShieldCheck, Users, X, Phone, Globe, Mail, Video
 } from 'lucide-react';
-import { BrowserRouter, Link, Navigate, Route, Routes, useParams } from 'react-router-dom';
+import { BrowserRouter, Link, Navigate, Route, Routes, useParams, useSearchParams } from 'react-router-dom';
 import { AuthProvider, useAuth } from './hooks/useAuth';
+import { api } from './lib/api';
 import PublicConsultationForm from './pages/PublicConsultationForm';
 import { LiveDashboard } from './pages/LiveDashboard';
 import './dashboard.css';
@@ -63,7 +64,7 @@ function Header(){
   return <header className="site-header"><div className="header-inner"><Brand/><nav className={open?'main-nav open':'main-nav'}><Link to="/" onClick={()=>setOpen(false)}>Beranda</Link><Link to="/layanan" onClick={()=>setOpen(false)}>Layanan</Link><Link to="/direktori-travel" onClick={()=>setOpen(false)}>Direktori Travel</Link><Link to="/edukasi" onClick={()=>setOpen(false)}>Edukasi Jemaah</Link><Link to="/tentang" onClick={()=>setOpen(false)}>Tentang</Link></nav><div className="header-actions"><Link to="/masuk" className="btn ghost"><LogIn size={16}/> Masuk</Link><Link to="/layanan" className="btn primary">Mulai layanan <ArrowRight size={16}/></Link></div><button className="mobile-menu" onClick={()=>setOpen(!open)} aria-label="Buka menu">{open?<X/>:<Menu/>}</button></div></header>
 }
 
-function Footer(){return <footer className="site-footer"><div className="footer-grid"><div className="footer-brand"><Brand light/><p>Portal layanan digital untuk pelaporan, administrasi penyelenggara, dan edukasi haji & umrah di Provinsi Riau.</p><div className="footer-contact"><span><strong>{ORG_NAME}</strong></span><span>{ORG_OFFICE}</span><span>{ORG_ADDRESS}, Pekanbaru, Riau</span><span>Telp: {ORG_PHONE}</span><span><a href={ORG_WEB} target="_blank" rel="noreferrer">{ORG_WEB}</a> · <a href={'mailto:'+ORG_EMAIL}>{ORG_EMAIL}</a></span></div></div><div><b>Layanan</b><Link to="/layanan">Semua layanan</Link><Link to="/direktori-travel">Direktori travel</Link><Link to="/edukasi">Edukasi jemaah</Link></div><div><b>Informasi</b><Link to="/tentang">Tentang layanan</Link><Link to="/layanan/permasalahan-umrah-haji-khusus">Laporkan masalah</Link><Link to="/masuk">Area petugas</Link></div><div><b>Prinsip layanan</b><p>Data terstruktur, status dapat ditelusuri, dan proses administrasi tetap mengikuti ketentuan serta verifikasi petugas.</p></div></div><div className="footer-bottom"><span>© 2026 {ORG_OFFICE}</span><span>Portal Layanan Haji & Umrah · {ORG_WEB}</span></div></footer>}
+function Footer(){return <footer className="site-footer"><div className="footer-grid"><div className="footer-brand"><Brand light/><p>Portal layanan digital untuk pelaporan, administrasi penyelenggara, dan edukasi haji & umrah di Provinsi Riau.</p><div className="footer-contact"><span><strong>{ORG_NAME}</strong></span><span>{ORG_OFFICE}</span><span>{ORG_ADDRESS}, Pekanbaru, Riau</span><span>Telp: {ORG_PHONE}</span><span><a href={ORG_WEB} target="_blank" rel="noreferrer">{ORG_WEB}</a> · <a href={'mailto:'+ORG_EMAIL}>{ORG_EMAIL}</a></span></div></div><div><b>Layanan</b><Link to="/layanan">Semua layanan</Link><Link to="/direktori-travel">Direktori travel</Link><Link to="/edukasi">Edukasi jemaah</Link></div><div><b>Informasi</b><Link to="/tentang">Tentang layanan</Link><Link to="/cek-status">Cek status pengajuan</Link><Link to="/layanan/permasalahan-umrah-haji-khusus">Laporkan masalah</Link><Link to="/masuk">Area petugas</Link></div><div><b>Prinsip layanan</b><p>Data terstruktur, status dapat ditelusuri, dan proses administrasi tetap mengikuti ketentuan serta verifikasi petugas.</p></div></div><div className="footer-bottom"><span>© 2026 {ORG_OFFICE}</span><span>Portal Layanan Haji & Umrah · {ORG_WEB}</span></div></footer>}
 
 function Layout({children}:{children:React.ReactNode}){ return <><Header/><main>{children}</main><Footer/></> }
 
@@ -96,5 +97,35 @@ function AboutPage(){return <Layout><PageHero kicker="Tentang portal" title="Lay
 
 function PageHero({kicker,title,text}:{kicker:string;title:string;text:string}){return <section className="page-hero"><span className="kicker">{kicker}</span><h1>{title}</h1><p>{text}</p></section>}
 
-function App(){return <AuthProvider><BrowserRouter><Routes><Route path="/" element={<HomePage/>}/><Route path="/layanan" element={<ServicesPage/>}/><Route path="/layanan/:slug" element={<ServiceDetail/>}/><Route path="/layanan/:slug/pengajuan" element={<PublicConsultationForm/>}/><Route path="/direktori-travel" element={<TravelDirectory/>}/><Route path="/edukasi" element={<EducationPage/>}/><Route path="/masuk" element={<LoginPage/>}/><Route path="/tentang" element={<AboutPage/>}/><Route path="/dashboard/*" element={<LiveDashboard base="/dashboard"/>}/><Route path="/konsultan/*" element={<LiveDashboard base="/konsultan"/>}/><Route path="/admin/*" element={<LiveDashboard base="/admin"/>}/><Route path="*" element={<Navigate to="/" replace/>}/></Routes></BrowserRouter></AuthProvider>}
+const TRACK_STATUS:Record<string,string>={menunggu:'Menunggu',dijadwalkan:'Dijadwalkan',berlangsung:'Berlangsung',selesai:'Selesai',dibatalkan:'Dibatalkan'};
+
+function TrackStatus(){
+  const [params]=useSearchParams();
+  const [ref,setRef]=useState(params.get('ref')||'');
+  const [email,setEmail]=useState('');
+  const [busy,setBusy]=useState(false);
+  const [err,setErr]=useState('');
+  const [result,setResult]=useState<{consultation:any;meeting:any}|null>(null);
+  const [openVideo,setOpenVideo]=useState(false);
+
+  function fmt(d:string|null){if(!d)return '—';try{return new Date(d).toLocaleString('id-ID',{day:'numeric',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'})}catch{return d}}
+  const meetingURL = result?.meeting && typeof result.meeting.meeting_url==='string' && result.meeting.meeting_url.includes('meet.jit.si') ? result.meeting.meeting_url : null;
+
+  async function search(e:React.FormEvent){
+    e.preventDefault();
+    setErr('');setResult(null);setOpenVideo(false);
+    if(!ref.trim()||!email.trim()){setErr('Masukkan nomor referensi dan email pengajuan Anda.');return}
+    setBusy(true);
+    try{
+      const q=`reference=${encodeURIComponent(ref.trim())}&guest_email=${encodeURIComponent(email.trim())}`;
+      const d=await api<{consultation:any;meeting:any}>(`/consultations/track?${q}`);
+      setResult(d);
+    }catch(ex){setErr(ex instanceof Error?ex.message:'Gagal memuat status pengajuan.')}
+    finally{setBusy(false)}
+  }
+
+  return <Layout><PageHero kicker="Cek status pengajuan" title="Lacak pengajuan layanan Anda" text="Masukkan nomor referensi dan email yang dipakai saat mengajukan layanan untuk melihat status dan jadwal pertemuan."/><section className="section"><div className="track-wrap"><form className="track-form" onSubmit={search}><label>Nomor referensi<input value={ref} onChange={e=>setRef(e.target.value)} placeholder="KHU-RIAU-2026XXXX-XXXX" required/></label><label>Email pengajuan<input type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="nama@email.com" required/></label>{err&&<div className="form-error" role="alert">{err}</div>}<button className="btn primary" disabled={busy}>{busy?'Memeriksa…':'Cek status'} <ArrowRight size={16}/></button></form>{result&&(<div className="track-result"><div className="track-head"><div><b>{result.consultation.reference}</b><span>{result.consultation.topic}</span></div><span className={'track-status '+result.consultation.status}>{TRACK_STATUS[result.consultation.status]||result.consultation.status}</span></div><dl><div><dt>Diajukan</dt><dd>{fmt(result.consultation.created_at)}</dd></div><div><dt>Pemohon</dt><dd>{result.consultation.guest_name||'—'}</dd></div><div><dt>Deskripsi</dt><dd>{result.consultation.description}</dd></div>{result.meeting?<div><dt>Jadwal pertemuan</dt><dd>{fmt(result.meeting.scheduled_at)}</dd></div>:<div><dt>Jadwal pertemuan</dt><dd>Belum dijadwalkan</dd></div>}</dl>{meetingURL?(!openVideo?<button className="btn gold" onClick={()=>setOpenVideo(true)}><Video size={16}/> Buka ruang video</button>:<div className="meeting-frame-wrap track-frame"><iframe src={`${meetingURL}#userInfo.displayName=${encodeURIComponent(result.consultation.guest_name||'Peserta')}`} allow="camera; microphone; fullscreen; display-capture; autoplay; clipboard-write; speaker" title="Ruang konsultasi video"/></div>):<div className="track-wait"><CalendarDays size={18}/><span>Petugas kantor akan menghubungi Anda setelah jadwal pertemuan dibuat.</span></div>}{result.consultation.completion_notes&&<div className="track-notes"><b>Catatan tindak lanjut:</b> {result.consultation.completion_notes}</div>}</div>)}</div></section></Layout>;
+}
+
+function App(){return <AuthProvider><BrowserRouter><Routes><Route path="/" element={<HomePage/>}/><Route path="/layanan" element={<ServicesPage/>}/><Route path="/layanan/:slug" element={<ServiceDetail/>}/><Route path="/layanan/:slug/pengajuan" element={<PublicConsultationForm/>}/><Route path="/direktori-travel" element={<TravelDirectory/>}/><Route path="/edukasi" element={<EducationPage/>}/><Route path="/masuk" element={<LoginPage/>}/><Route path="/tentang" element={<AboutPage/>}/><Route path="/cek-status" element={<TrackStatus/>}/><Route path="/dashboard/*" element={<LiveDashboard base="/dashboard"/>}/><Route path="/konsultan/*" element={<LiveDashboard base="/konsultan"/>}/><Route path="/admin/*" element={<LiveDashboard base="/admin"/>}/><Route path="*" element={<Navigate to="/" replace/>}/></Routes></BrowserRouter></AuthProvider>}
 export default App;

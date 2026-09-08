@@ -116,7 +116,10 @@ export default function PublicConsultationForm() {
               <div style={{ background: '#faf6f0', border: '1px solid var(--line)', borderRadius: 12, padding: '16px', margin: '18px 0', fontSize: 20, fontWeight: 800, letterSpacing: '.04em', color: '#3a2b21', fontFamily: "'Manrope',sans-serif" }}>
                 {success.reference}
               </div>
-              <Link to="/" className="btn primary full">
+              <Link to={`/cek-status?ref=${encodeURIComponent(success.reference)}`} className="btn light full">
+                <CheckCircle2 size={16} /> Cek status pengajuan
+              </Link>
+              <Link to="/" className="btn primary full" style={{ marginTop: 8 }}>
                 <FileText size={16} /> Kembali ke beranda
               </Link>
             </div>
