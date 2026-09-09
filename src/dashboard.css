@@ -97,6 +97,11 @@
 .empty-live b{font:700 13px 'Manrope';color:#5f534b}
 .empty-live span{font-size:11px}
 
+/* Status toast */
+.dash-msg{border-radius:9px;padding:10px 14px;font-size:11px;font-weight:800;line-height:1.5}
+.dash-msg.ok{background:var(--green-soft);color:var(--green)}
+.dash-msg.err{background:var(--red-soft);color:var(--red)}
+
 /* Jitsi meeting view */
 .meeting-view{padding:0;height:calc(100vh - 70px)}
 .meeting-frame-wrap{border-radius:14px;overflow:hidden;background:#000;height:calc(100vh - 130px);border:1px solid var(--line)}

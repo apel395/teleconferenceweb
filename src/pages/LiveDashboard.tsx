@@ -33,6 +33,14 @@ type Meeting = {
   scheduled_at: string;
   meeting_url: string | null;
   created_at: string;
+  consultations?: {
+    topic?: string;
+    reference?: string | null;
+    guest_name?: string | null;
+    user_id?: string | null;
+    status?: string;
+    profiles?: { name?: string } | { name?: string }[] | null;
+  } | null;
 };
 type Booking = { consultation: Consultation; meeting?: Meeting };
 
@@ -68,6 +76,21 @@ function initials(n: string) {
   return n.split(/\s+/).slice(0, 2).map((x) => x[0] || '').join('').toUpperCase() || '?';
 }
 
+// Pelaporan services are processed as documents (no video call). Konsultasi
+// services (perizinan & travel, dst.) use scheduled Jitsi meetings.
+const PELAPORAN_TOPICS = new Set([
+  'Pelaporan Travel Umrah',
+  'Pelaporan Jemaah Haji Khusus',
+  'Pelaporan Pemulangan',
+  'Pemulangan Jemaah Haji Reguler',
+  'Pemulangan Petugas Haji',
+  'Permasalahan Umrah & Haji Khusus',
+  'Pelaporan Manasik Kabupaten/Kota',
+]);
+function isPelaporan(c: { topic?: string }): boolean {
+  return PELAPORAN_TOPICS.has(c.topic || '');
+}
+
 /* ---------- Shell ---------- */
 function useRole(base: string): 'pengguna' | 'konsultan' | 'admin' {
   if (base === '/konsultan') return 'konsultan';
@@ -88,13 +111,16 @@ export function DashboardShell({ base, children }: { base: string; children: Rea
     nav.push({ to: `${base}`, label: 'Ringkasan', icon: <LayoutDashboard size={17} /> });
     nav.push({ to: `${base}/pengajuan`, label: 'Pengajuan & Laporan', icon: <ClipboardList size={17} /> });
     nav.push({ to: `${base}/konsultasi`, label: 'Konsultasi', icon: <MessageSquare size={17} /> });
+    nav.push({ to: `${base}/video`, label: 'Video Call', icon: <Video size={17} /> });
   } else if (isCons) {
     nav.push({ to: `${base}`, label: 'Ringkasan', icon: <LayoutDashboard size={17} /> });
     nav.push({ to: `${base}/penjadwalan`, label: 'Penjadwalan', icon: <CalendarDays size={17} /> });
     nav.push({ to: `${base}/konsultasi`, label: 'Konsultasi', icon: <MessageSquare size={17} /> });
+    nav.push({ to: `${base}/video`, label: 'Video Call', icon: <Video size={17} /> });
   } else {
     nav.push({ to: `${base}`, label: 'Ringkasan', icon: <LayoutDashboard size={17} /> });
     nav.push({ to: `${base}/konsultasi`, label: 'Konsultasi Saya', icon: <MessageSquare size={17} /> });
+    nav.push({ to: `${base}/video`, label: 'Video Call', icon: <Video size={17} /> });
   }
 
   const roleLabel = isAdmin ? 'Administrator' : isCons ? 'Konsultan' : 'Pengguna';
@@ -284,6 +310,7 @@ function SchedulingView({ base }: { base: string }) {
 
   const waiting = list
     .filter((c) => c.status === 'menunggu')
+    .filter((c) => !isPelaporan(c))
     .filter((c) => `${c.topic} ${c.reference || ''} ${nameOf(c)}`.toLowerCase().includes(q.toLowerCase()));
 
   function jadwalkan(c: Consultation) {
@@ -351,13 +378,100 @@ function SchedulingView({ base }: { base: string }) {
   );
 }
 
+/* ---------- Video call list (separate menu) ---------- */
+function MeetingList({ base }: { base: string }) {
+  const [meetings, setMeetings] = useState<Meeting[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [err, setErr] = useState('');
+  const [q, setQ] = useState('');
+
+  const reload = () => {
+    setLoading(true);
+    setErr('');
+    api<{ meetings: Meeting[] }>('/meetings')
+      .then((d) => setMeetings(d.meetings || []))
+      .catch((e: Error) => setErr(e.message))
+      .finally(() => setLoading(false));
+  };
+  useEffect(reload, []);
+
+  const mName = (m: Meeting) => {
+    const co = m.consultations;
+    if (!co) return 'Pemohon';
+    const p: any = co.profiles;
+    const pn = Array.isArray(p) ? p?.[0]?.name : p?.name;
+    return co.guest_name || pn || 'Pemohon';
+  };
+  const filtered = meetings.filter((m) =>
+    `${m.consultations?.reference || ''} ${m.consultations?.topic || ''} ${mName(m)}`.toLowerCase().includes(q.toLowerCase())
+  );
+  const upcoming = filtered.filter((m) => !['selesai', 'dibatalkan'].includes(m.consultations?.status || ''));
+  const done = filtered.filter((m) => ['selesai', 'dibatalkan'].includes(m.consultations?.status || ''));
+
+  const render = (rows: Meeting[]) => (
+    <div className="table-wrap-live">
+      <table className="table-live">
+        <thead><tr><th>Jadwal</th><th>Ref / topik</th><th>Pemohon</th><th>Status</th><th>Aksi</th></tr></thead>
+        <tbody>
+          {rows.map((m) => (
+            <tr key={m.id}>
+              <td><b>{fmtDate(m.scheduled_at)} {horario(m.scheduled_at)}</b><br /><small style={{ color: '#9a8c83', fontSize: 9 }}>WIB</small></td>
+              <td><b>{m.consultations?.reference || '—'}</b><br /><small style={{ color: '#9a8c83', fontSize: 10 }}>{m.consultations?.topic || ''}</small></td>
+              <td>{mName(m)}</td>
+              <td>{statusPill(m.consultations?.status || 'dijadwalkan')}</td>
+              <td>
+                {m.consultations?.status === 'selesai' || m.consultations?.status === 'dibatalkan' ? (
+                  <small style={{ color: '#9a8c83', fontWeight: 700 }}>Selesai</small>
+                ) : (
+                  <Link className="btn gold sm" to={`${base}/meeting/${m.id}`}><Video size={13} /> Gabung</Link>
+                )}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+
+  return (
+    <>
+      <div className="dash-section-title">Konsultasi video</div>
+      <div className="dash-panel" style={{ paddingBottom: 8 }}>
+        <div className="dash-panel-head">
+          <h3>Panggilan video terjadwal</h3>
+          <button className="btn ghost2 sm" onClick={reload}><RefreshCw size={14} /> Muat ulang</button>
+        </div>
+        <div className="search-box" style={{ width: '100%', maxWidth: 'none', margin: '0 0 14px' }}>
+          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Cari jadwal, ref, topik, atau pemohon…" />
+        </div>
+        {loading ? (
+          <div className="empty-live"><b>Memuat…</b></div>
+        ) : err ? (
+          <div className="empty-live"><b>Gagal memuat</b><span>{err}</span></div>
+        ) : filtered.length === 0 ? (
+          <div className="empty-live"><Video size={26} /><b>Belum ada panggilan video</b><span>Jadwal pertemuan yang dibuat untuk konsultasi akan muncul di sini.</span></div>
+        ) : (
+          <>
+            {upcoming.length > 0 && <div className="dash-panel-head"><h3>Akan datang</h3><span className="count">{upcoming.length}</span></div>}
+            {upcoming.length > 0 && render(upcoming)}
+            {done.length > 0 && <div className="dash-panel-head" style={{ marginTop: 26 }}><h3>Riwayat</h3><span className="count">{done.length}</span></div>}
+            {done.length > 0 && render(done)}
+          </>
+        )}
+      </div>
+    </>
+  );
+}
+
 /* ---------- Consultation list ---------- */
 function ConsultationList({ base }: { base: string }) {
   const { list, loading, error, reload } = useConsultations();
   const [q, setQ] = useState('');
   const role = useRole(base);
   const isStaff = role === 'admin' || role === 'konsultan';
-  const filtered = list.filter((c) => `${c.topic} ${c.reference || ''} ${nameOf(c)}`.toLowerCase().includes(q.toLowerCase()));
+  const filtered = list
+    .filter((c) => (isStaff ? !isPelaporan(c) : true))
+    .filter((c) => `${c.topic} ${c.reference || ''} ${nameOf(c)}`.toLowerCase().includes(q.toLowerCase()));
 
   return (
     <>
@@ -403,7 +517,9 @@ function ConsultationList({ base }: { base: string }) {
 function Submissions({ base }: { base: string }) {
   const { list, loading, reload } = useConsultations();
   const [q, setQ] = useState('');
-  const filtered = list.filter((c) => `${c.topic} ${c.reference || ''} ${nameOf(c)} ${c.guest_email || ''} ${c.guest_phone || ''}`.toLowerCase().includes(q.toLowerCase()));
+  const filtered = list
+    .filter((c) => isPelaporan(c))
+    .filter((c) => `${c.topic} ${c.reference || ''} ${nameOf(c)} ${c.guest_email || ''} ${c.guest_phone || ''}`.toLowerCase().includes(q.toLowerCase()));
   const public_ = filtered.filter((c) => !c.user_id);
   const registered = filtered.filter((c) => c.user_id);
   const render = (rows: Consultation[]) => (
@@ -462,9 +578,14 @@ function ConsultationDetail({ base }: { base: string }) {
   const [schedAt, setSchedAt] = useState('');
   const [schedBusy, setSchedBusy] = useState(false);
   const [schedMsg, setSchedMsg] = useState('');
+  const [notes, setNotes] = useState('');
+  const [statusMsg, setStatusMsg] = useState('');
+  const [busyStatus, setBusyStatus] = useState(false);
 
   useEffect(() => {
     setLoading(true);
+    setStatusMsg('');
+    setNotes('');
     Promise.all([
       api<{ consultation: Consultation }>(`/consultations/${id}`),
       api<{ meetings: Meeting[] }>('/meetings'),
@@ -488,10 +609,16 @@ function ConsultationDetail({ base }: { base: string }) {
       .finally(() => setSchedBusy(false));
   }
 
-  function setStatus(status: string) {
-    api(`/consultations/${id}/status`, { method: 'PATCH', body: { status } })
-      .then(() => { setC((cur) => (cur ? { ...cur, status } : cur)); })
-      .catch((e: Error) => setErr(e.message));
+  function setStatus(status: string, notesText?: string) {
+    setBusyStatus(true);
+    setStatusMsg('');
+    api(`/consultations/${id}/status`, { method: 'PATCH', body: { status, completion_notes: notesText || undefined } })
+      .then(() => {
+        setC((cur) => (cur ? { ...cur, status, completion_notes: notesText || cur.completion_notes, completed_at: status === 'selesai' ? new Date().toISOString() : cur.completed_at } : cur));
+        setStatusMsg(status === 'selesai' ? 'Konsultasi ditandai selesai. Catatan penyelesaian disimpan.' : status === 'dibatalkan' ? 'Konsultasi berhasil dibatalkan.' : 'Status konsultasi diperbarui.');
+      })
+      .catch((e: Error) => setStatusMsg('Gagal memperbarui status: ' + e.message))
+      .finally(() => setBusyStatus(false));
   }
   function startCall() {
     setStatus(meeting ? 'berlangsung' : 'berlangsung');
@@ -500,6 +627,7 @@ function ConsultationDetail({ base }: { base: string }) {
 
   if (loading) return <div className="empty-live"><b>Memuat…</b></div>;
   if (err || !c) return <div className="empty-live"><b>Gagal memuat</b><span>{err}</span></div>;
+  const pel = isPelaporan(c);
 
   return (
     <>
@@ -530,8 +658,14 @@ function ConsultationDetail({ base }: { base: string }) {
         </div>
 
         <div className="dash-panel">
-          <div className="dash-panel-head"><h3>Pertemuan daring</h3></div>
-          {meeting ? (
+          <div className="dash-panel-head"><h3>{pel ? 'Proses layanan' : 'Pertemuan daring'}</h3></div>
+          {pel ? (
+            <div className="empty-live" style={{ padding: '22px 10px', textAlign: 'left', alignItems: 'flex-start' }}>
+              <FileText size={22} />
+              <b>Jenis pelaporan</b>
+              <span>Pengajuan ini ditindaklanjuti sebagai dokumen/laporan. Tidak ada pertemuan video yang dijadwalkan.</span>
+            </div>
+          ) : meeting ? (
             <div style={{ display: 'grid', gap: 12 }}>
               <div className="detail-info">
                 <div><div className="field-lbl">Jadwal</div><div className="field-val">{fmtDate(meeting.scheduled_at)} {horario(meeting.scheduled_at)} WIB</div></div>
@@ -561,10 +695,28 @@ function ConsultationDetail({ base }: { base: string }) {
             <div className="empty-live"><span>Menunggu petugas menjadwalkan pertemuan Anda.</span></div>
           )}
 
-          {isStaff && meeting && (
+          {isStaff && (
             <div style={{ marginTop: 16, borderTop: '1px solid var(--line)', paddingTop: 14, display: 'grid', gap: 8 }}>
-              <button className="btn ghost2 sm" onClick={() => setStatus(c.status === 'selesai' ? 'berlangsung' : 'selesai')}><CheckCircle2 size={15} /> Tandai {c.status === 'selesai' ? 'berlangsung' : 'selesai'}</button>
-              <button className="btn ghost2 sm" style={{ color: 'var(--red)' }} onClick={() => setStatus('dibatalkan')}><X size={15} /> Batalkan konsultasi</button>
+              {statusMsg && <div className={'dash-msg ' + (statusMsg.startsWith('Gagal') ? 'err' : 'ok')}>{statusMsg}</div>}
+              {c.status === 'selesai' ? (
+                <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--green)', display: 'flex', alignItems: 'center', gap: 7 }}>
+                  <CheckCircle2 size={16} /> Konsultasi telah ditandai selesai dan tidak dapat diubah lagi.
+                </div>
+              ) : c.status === 'dibatalkan' ? (
+                <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--red)', display: 'flex', alignItems: 'center', gap: 7 }}>
+                  <X size={16} /> Konsultasi ini telah dibatalkan.
+                </div>
+              ) : (
+                <>
+                  <label className="form-label" style={{ marginTop: 4 }}>Catatan penyelesaian / hasil
+                    <textarea rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Tulis ringkasan hasil atau alasan pembatalan (opsional)" />
+                  </label>
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                    <button className="btn ghost2 sm" disabled={busyStatus} onClick={() => setStatus('selesai', notes)}><CheckCircle2 size={15} /> Tandai selesai</button>
+                    <button className="btn ghost2 sm" disabled={busyStatus} style={{ color: 'var(--red)' }} onClick={() => setStatus('dibatalkan', notes)}><X size={15} /> Batalkan konsultasi</button>
+                  </div>
+                </>
+              )}
             </div>
           )}
         </div>
@@ -637,6 +789,7 @@ export function LiveDashboard({ base }: { base: string }) {
         <Route path="konsultasi" element={<ConsultationList base={base} />} />
         <Route path="konsultasi/:id" element={<ConsultationDetail base={base} />} />
         <Route path="meeting/:id" element={<MeetingView base={base} />} />
+        <Route path="video" element={<MeetingList base={base} />} />
       </Routes>
     </DashboardShell>
   );
@@ -649,6 +802,7 @@ export function LiveDashboard({ base }: { base: string }) {
         <Route path="konsultasi" element={<ConsultationList base={base} />} />
         <Route path="konsultasi/:id" element={<ConsultationDetail base={base} />} />
         <Route path="meeting/:id" element={<MeetingView base={base} />} />
+        <Route path="video" element={<MeetingList base={base} />} />
       </Routes>
     </DashboardShell>
   );
@@ -662,6 +816,7 @@ export function LiveDashboard({ base }: { base: string }) {
         <Route path="konsultasi" element={<ConsultationList base={base} />} />
         <Route path="konsultasi/:id" element={<ConsultationDetail base={base} />} />
         <Route path="meeting/:id" element={<MeetingView base={base} />} />
+        <Route path="video" element={<MeetingList base={base} />} />
       </Routes>
     </DashboardShell>
   );
