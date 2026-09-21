@@ -87,7 +87,7 @@ function LoginPage(){
   const [error,setError]=useState('');
   const [loading,setLoading]=useState(false);
   async function onSubmit(e:React.FormEvent){e.preventDefault();setError('');setLoading(true);try{await login(email,password)}catch(err){setError(err instanceof Error?err.message:'Gagal masuk')}finally{setLoading(false)}}
-  const dest = user?.role === 'admin' ? '/admin' : user?.role === 'konsultan' ? '/konsultan' : '/dashboard';
+  const dest = user?.role === 'admin' ? '/admin' : user?.role === 'konsultan' ? '/konsultan' : user?.role === 'pengawas' ? '/pengawas' : '/dashboard';
   if (isAuth && user) return <Navigate to={dest} replace />;
   return <Layout><section className="login-section"><div className="login-card"><div className="login-brand"><img className="brand-logo" src="/logo-kemenhaj.png" alt="Logo Kemenhaj Riau"/><div><b>Area Petugas</b><span>Kantor Wilayah Kemenhaj Provinsi Riau</span></div></div>
   <><h1>Masuk ke sistem</h1><p>Akses dashboard operasional, register laporan, dan tindak lanjut layanan.</p><form onSubmit={onSubmit}>{error&&<div className="form-error" role="alert">{error}</div>}<label>Email<input type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="nama@kemenhaj.go.id" required/></label><label>Kata sandi<input type="password" value={password} onChange={e=>setPassword(e.target.value)} placeholder="••••••••" required/></label><button className="btn primary full" disabled={loading}>{loading?'Memproses...':'Masuk'} <ArrowRight size={16}/></button></form><small>Akses diberikan sesuai akun dan kewenangan petugas yang terdaftar.</small></>
