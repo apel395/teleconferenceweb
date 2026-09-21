@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 import { Link, Navigate, NavLink, Route, Routes, useNavigate, useParams } from 'react-router-dom';
 import {
-  CalendarDays, CalendarPlus, CheckCircle2, ClipboardList, FileText, LayoutDashboard,
+  CalendarDays, CalendarPlus, CheckCircle2, ClipboardCheck, ClipboardList, FileText, LayoutDashboard,
   LogOut, Menu, MessageSquare, Phone, RefreshCw, Users, Video, X
 } from 'lucide-react';
 import { api, getUser } from '../lib/api';
+import { SupervisionForm, SupervisionList } from './SupervisionPages';
 
 /* ---------- Types ---------- */
 type Consultation = {
@@ -92,9 +93,10 @@ function isPelaporan(c: { topic?: string }): boolean {
 }
 
 /* ---------- Shell ---------- */
-function useRole(base: string): 'pengguna' | 'konsultan' | 'admin' {
+function useRole(base: string): 'pengguna' | 'konsultan' | 'admin' | 'pengawas' {
   if (base === '/konsultan') return 'konsultan';
   if (base === '/admin') return 'admin';
+  if (base === '/pengawas') return 'pengawas';
   return 'pengguna';
 }
 
@@ -105,11 +107,13 @@ export function DashboardShell({ base, children }: { base: string; children: Rea
   const role = useRole(base);
   const isAdmin = role === 'admin';
   const isCons = role === 'konsultan';
+  const isSupervisor = role === 'pengawas';
 
   const nav: { to: string; label: string; icon: React.ReactNode }[] = [];
   if (isAdmin) {
     nav.push({ to: `${base}`, label: 'Ringkasan', icon: <LayoutDashboard size={17} /> });
     nav.push({ to: `${base}/pengajuan`, label: 'Pengajuan & Laporan', icon: <ClipboardList size={17} /> });
+    nav.push({ to: `${base}/pengawasan`, label: 'Pengawasan', icon: <ClipboardCheck size={17} /> });
     nav.push({ to: `${base}/konsultasi`, label: 'Konsultasi', icon: <MessageSquare size={17} /> });
     nav.push({ to: `${base}/video`, label: 'Video Call', icon: <Video size={17} /> });
   } else if (isCons) {
@@ -117,13 +121,16 @@ export function DashboardShell({ base, children }: { base: string; children: Rea
     nav.push({ to: `${base}/penjadwalan`, label: 'Penjadwalan', icon: <CalendarDays size={17} /> });
     nav.push({ to: `${base}/konsultasi`, label: 'Konsultasi', icon: <MessageSquare size={17} /> });
     nav.push({ to: `${base}/video`, label: 'Video Call', icon: <Video size={17} /> });
+  } else if (isSupervisor) {
+    nav.push({ to: `${base}`, label: 'Ringkasan', icon: <LayoutDashboard size={17} /> });
+    nav.push({ to: `${base}/pengawasan`, label: 'Pengawasan', icon: <ClipboardCheck size={17} /> });
   } else {
     nav.push({ to: `${base}`, label: 'Ringkasan', icon: <LayoutDashboard size={17} /> });
     nav.push({ to: `${base}/konsultasi`, label: 'Konsultasi Saya', icon: <MessageSquare size={17} /> });
     nav.push({ to: `${base}/video`, label: 'Video Call', icon: <Video size={17} /> });
   }
 
-  const roleLabel = isAdmin ? 'Administrator' : isCons ? 'Konsultan' : 'Pengguna';
+  const roleLabel = isAdmin ? 'Administrator' : isCons ? 'Konsultan' : isSupervisor ? 'Pengawas' : 'Pengguna';
   const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 
   function logout() {
@@ -214,7 +221,7 @@ function Overview({ base }: { base: string }) {
   const stats = useStats();
   const meetings = useMeetings();
   const role = useRole(base);
-  const isStaff = role === 'admin' || role === 'konsultan';
+  const isStaff = role === 'admin' || role === 'konsultan' || role === 'pengawas';
 
   const menunggu = list.filter((c) => c.status === 'menunggu').length;
   const dijadwalkan = list.filter((c) => c.status === 'dijadwalkan').length;
@@ -786,10 +793,23 @@ export function LiveDashboard({ base }: { base: string }) {
       <Routes>
         <Route path="" element={<Overview base={base} />} />
         <Route path="pengajuan" element={<Submissions base={base} />} />
+        <Route path="pengawasan" element={<SupervisionList base={base} />} />
+        <Route path="pengawasan/baru" element={<SupervisionForm base={base} />} />
+        <Route path="pengawasan/:id" element={<SupervisionForm base={base} />} />
         <Route path="konsultasi" element={<ConsultationList base={base} />} />
         <Route path="konsultasi/:id" element={<ConsultationDetail base={base} />} />
         <Route path="meeting/:id" element={<MeetingView base={base} />} />
         <Route path="video" element={<MeetingList base={base} />} />
+      </Routes>
+    </DashboardShell>
+  );
+  if (role === 'pengawas' && user.role === 'pengawas') return (
+    <DashboardShell base={base}>
+      <Routes>
+        <Route path="" element={<SupervisionList base={base} />} />
+        <Route path="pengawasan" element={<SupervisionList base={base} />} />
+        <Route path="pengawasan/baru" element={<SupervisionForm base={base} />} />
+        <Route path="pengawasan/:id" element={<SupervisionForm base={base} />} />
       </Routes>
     </DashboardShell>
   );
