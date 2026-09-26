@@ -211,8 +211,7 @@ function useMeetings() {
 /* ---------- Overview ---------- */
 function Overview({ base }: { base: string }) {
   const { list, reload } = useConsultations();
-  const stats = useStats();
-  const meetings = useMeetings();
+  const meetings: Meeting[] = [];
   const role = useRole(base);
   const isStaff = role === 'admin' || role === 'konsultan';
 
