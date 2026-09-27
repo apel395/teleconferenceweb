@@ -86,6 +86,10 @@ const PELAPORAN_TOPICS = new Set([
   'Pemulangan Petugas Haji',
   'Permasalahan Umrah & Haji Khusus',
   'Pelaporan Manasik Kabupaten/Kota',
+  'Pengajuan Perizinan PPIU dan KBIHU',
+  'Pelaporan Izin Cabang PPIU',
+  'List Travel Umrah',
+  'List Travel Umrah (termasuk travel bermasalah)',
 ]);
 function isPelaporan(c: { topic?: string }): boolean {
   return PELAPORAN_TOPICS.has(c.topic || '');
