@@ -61,6 +61,10 @@ export async function api<T = unknown>(
   const data = await res.json().catch(() => ({}));
 
   if (!res.ok) {
+    if (res.status === 401 && token && path !== '/auth/login') {
+      clearSession();
+      window.dispatchEvent(new Event('kemenhaj-session-expired'));
+    }
     throw new Error((data as { error?: string }).error || 'Terjadi kesalahan');
   }
 
