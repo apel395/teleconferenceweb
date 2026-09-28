@@ -1,6 +1,6 @@
 # KEMENHAJ Riau — Portal Layanan Haji & Umrah
 
-Portal layanan digital Kantor Wilayah Kementerian Haji dan Umrah Provinsi Riau. Aplikasi mencakup layanan publik, pelaporan, konsultasi dan teleconference, administrasi penyelenggara, edukasi jemaah, serta modul **Pengawasan PPIU di Bandara** yang sedang diselesaikan.
+Portal layanan digital Kantor Wilayah Kementerian Haji dan Umrah Provinsi Riau. Aplikasi mencakup layanan publik, pelaporan, konsultasi dan teleconference, administrasi penyelenggara, edukasi jemaah, serta modul **Pengawasan PPIU di Bandara** Phase 1 yang telah di-deploy dan masih memerlukan uji inspeksi langsung.
 
 ## Status proyek — 28 September 2026
 
@@ -14,10 +14,10 @@ Portal layanan digital Kantor Wilayah Kementerian Haji dan Umrah Provinsi Riau. 
 - Pelaporan dokumen dipisahkan dari alur teleconference untuk layanan yang sudah diklasifikasikan.
 
 **Sedang dikerjakan**
-- Pengawasan PPIU Phase 1 berada di branch `feature/pengawasan-phase-1` dan belum menjadi fitur produksi.
+- Pengawasan PPIU Phase 1 telah di-merge ke `main` dan di-deploy pada 28 September 2026.
 - Backend Pengawasan memiliki draft/list/detail, checklist, submit/finalize, role `pengawas`, dan struktur attachment/storage.
 - Checklist Pengawasan dikendalikan backend dan seluruh item wajib diperiksa sebelum finalisasi.
-- Berikutnya: evidence/foto, penyimpanan attachment, penyempurnaan finalisasi/tanda tangan, migration Supabase, integrasi produksi, dan end-to-end validation.
+- Evidence private, signed viewing, finalisasi signatory, dan migration Supabase tersedia; validasi inspeksi langsung masih diperlukan.
 
 ## Arsitektur
 
@@ -51,7 +51,7 @@ Frontend tidak mengakses database secara langsung. Akses data operasional melalu
 | Backend | [kemenhaj-backend](https://github.com/apel395/kemenhaj-backend) / Render | REST API, auth/authorization, business rules, Supabase access |
 | Database | Supabase PostgreSQL | Profiles, consultations, meetings, attendance, Pengawasan |
 | Auth | Supabase Auth + application JWT | Identity + session API |
-| File storage | Supabase Storage | Evidence Pengawasan (planned integration) |
+| File storage | Supabase Storage | Private evidence Pengawasan |
 | Video | Jitsi Meet | Ruang teleconference konsultasi |
 
 ## Role dan area aplikasi
@@ -61,7 +61,7 @@ Frontend tidak mengakses database secara langsung. Akses data operasional melalu
 | `pengguna` | layanan/konsultasi milik pengguna |
 | `konsultan` | konsultasi, penjadwalan, video call |
 | `admin` | ringkasan, pengajuan/laporan, konsultasi, video, administrasi |
-| `pengawas` | Pengawasan PPIU (feature branch, belum production) |
+| `pengawas` | Pengawasan PPIU Phase 1 (production) |
 
 Public registration harus menghasilkan role `pengguna`; role petugas diberikan melalui administrasi user/backend.
 
@@ -106,7 +106,7 @@ src/
 ├── pages/
 │   ├── LiveDashboard.tsx    # operational dashboards
 │   ├── PublicConsultationForm.tsx
-│   └── SupervisionPages.tsx # Pengawasan (feature branch)
+│   └── SupervisionPages.tsx # Pengawasan Phase 1
 └── dashboard.css
 vercel.json                  # SPA rewrite
 ```
@@ -151,16 +151,11 @@ Perubahan yang membutuhkan schema baru (terutama Pengawasan) **tidak boleh di-me
 
 ## Branch aktif
 
-- Production: `main`
-- Pengawasan Phase 1: `feature/pengawasan-phase-1`
-- Frontend dan backend masing-masing memiliki branch Pengawasan terpisah.
+- Production: `main` (Pengawasan Phase 1 telah digabungkan).
+- Branch pengembangan `feature/pengawasan-phase-1` tetap tersedia untuk riwayat.
 
 ## Prioritas berikutnya
 
-1. Selesaikan evidence/photo upload Pengawasan ke private Supabase Storage.
-2. Simpan metadata attachment dan signed access URL.
-3. Pastikan signatory tersimpan sebelum finalisasi.
-4. Terapkan migration Pengawasan di Supabase.
-5. Build/test frontend dan backend, lalu end-to-end test role admin/pengawas.
-6. Merge feature branches hanya setelah database siap.
-7. Lanjutkan pemisahan dedicated workflow/content untuk layanan yang bukan teleconference.
+1. Uji end-to-end akun admin dan pengawas: checklist, foto, signed view/delete, submit, dan finalisasi.
+2. Verifikasi alur meeting/video call dan status pembatalan/penyelesaian.
+3. Lengkapi warning/referensi hukum, konten edukasi, direktori travel, dan penyempurnaan mobile.
