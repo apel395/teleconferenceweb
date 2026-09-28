@@ -192,12 +192,24 @@ function useConsultations() {
   const [error, setError] = useState('');
   const reload = () => {
     setLoading(true);
+    setError('');
     api<{ consultations: Consultation[] }>('/consultations')
       .then((d) => setList(d.consultations || []))
       .catch((e: Error) => setError(e.message))
       .finally(() => setLoading(false));
   };
-  useEffect(reload, []);
+  useEffect(() => {
+    reload();
+    const refresh = () => { if (document.visibilityState === 'visible') reload(); };
+    window.addEventListener('focus', refresh);
+    document.addEventListener('visibilitychange', refresh);
+    const interval = window.setInterval(refresh, 30000);
+    return () => {
+      window.removeEventListener('focus', refresh);
+      document.removeEventListener('visibilitychange', refresh);
+      window.clearInterval(interval);
+    };
+  }, []);
   return { list, loading, error, reload };
 }
 function useStats() {
@@ -525,7 +537,7 @@ function ConsultationList({ base }: { base: string }) {
 
 /* ---------- Submissions (admin) ---------- */
 function Submissions({ base }: { base: string }) {
-  const { list, loading, reload } = useConsultations();
+  const { list, loading, error, reload } = useConsultations();
   const [q, setQ] = useState('');
   const filtered = list
     .filter((c) => isPelaporan(c))
@@ -554,8 +566,9 @@ function Submissions({ base }: { base: string }) {
 
   return (
     <>
-      <div className="dash-section-title">Pengajuan &amp; laporan masuk</div>
+      <div className="dash-panel-head"><div className="dash-section-title">Pengajuan &amp; laporan masuk</div><button className="btn ghost2 sm" onClick={reload} disabled={loading}><RefreshCw size={14}/> Muat ulang</button></div>
       <div className="dash-panel" style={{ paddingBottom: 8 }}>
+        {error && <div className="dash-msg" role="alert">Gagal memuat pengajuan: {error} <button className="btn ghost2 sm" onClick={reload}>Coba lagi</button></div>}
         <div className="search-box" style={{ width: '100%', maxWidth: 'none', marginBottom: 16 }}>
           <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Cari pengajuan, ref, pemohon, kontak…" />
         </div>
