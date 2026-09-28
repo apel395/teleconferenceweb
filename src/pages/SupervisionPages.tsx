@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { CheckCircle2, ClipboardCheck, Plus, RefreshCw, Save } from 'lucide-react';
-import { api } from '../lib/api';
+import { api, API_URL, getToken } from '../lib/api';
 
 type Supervision = {
   id: string; reference: string; airport: string | null; inspection_date: string;
@@ -11,8 +11,9 @@ type Supervision = {
   officer_count: number|null; findings: string|null; recommendation_notes: string|null;
   decision: string|null; status: 'DRAFT'|'SUBMITTED'|'FINAL';
   supervisor_1: string|null; supervisor_2: string|null; supervised_party: string|null;
-  items?: Item[];
+  items?: Item[]; attachments?: Attachment[];
 };
+type Attachment = { id:string; file_name:string; mime_type:string; item_id:string|null };
 type Item = { id?:string; item_code:string; section:string; indicator:string; result:'YES'|'NO'|null; notes:string|null; sort_order:number };
 
 const checklist: Omit<Item,'id'|'result'|'notes'>[] = [
@@ -46,8 +47,9 @@ export function SupervisionList({base}:{base:string}) {
 export function SupervisionForm({base}:{base:string}) {
   const {id}=useParams(); const nav=useNavigate(); const editing=Boolean(id);
   const [form,setForm]=useState<any>(blank); const [items,setItems]=useState<Item[]>(checklist.map(x=>({...x,result:null,notes:null})));
+  const [attachments,setAttachments]=useState<Attachment[]>([]); const [uploading,setUploading]=useState(false);
   const [busy,setBusy]=useState(false); const [msg,setMsg]=useState(''); const [status,setStatus]=useState<'DRAFT'|'SUBMITTED'|'FINAL'>('DRAFT');
-  useEffect(()=>{if(!id)return;api<{supervision:Supervision}>(`/supervisions/${id}`).then(d=>{const s=d.supervision;setStatus(s.status);setForm({...blank,...s,pilgrim_count:s.pilgrim_count??'',officer_count:s.officer_count??''});const saved=new Map((s.items||[]).map(x=>[x.item_code,x]));setItems(checklist.map(x=>saved.get(x.item_code)||({...x,result:null,notes:null})));}).catch((e:Error)=>setMsg(e.message));},[id]);
+  useEffect(()=>{if(!id)return;api<{supervision:Supervision}>(`/supervisions/${id}`).then(d=>{const s=d.supervision;setStatus(s.status);setAttachments(s.attachments||[]);setForm({...blank,...s,pilgrim_count:s.pilgrim_count??'',officer_count:s.officer_count??''});const saved=new Map((s.items||[]).map(x=>[x.item_code,x]));setItems(checklist.map(x=>saved.get(x.item_code)||({...x,result:null,notes:null})));}).catch((e:Error)=>setMsg(e.message));},[id]);
   const set=(k:string,v:any)=>setForm((f:any)=>({...f,[k]:v}));
   async function saveHeader(){
     if(!form.ppiu_name){setMsg('Nama PPIU wajib diisi.');return null;} setBusy(true);setMsg('');
@@ -57,9 +59,35 @@ export function SupervisionForm({base}:{base:string}) {
     if(!id){setMsg('Simpan data utama terlebih dahulu.');return;} const next={...item,result};setItems(xs=>xs.map(x=>x.item_code===item.item_code?next:x));
     try{await api(`/supervisions/${id}/items/${item.item_code}`,{method:'PUT',body:next});}catch(e:any){setMsg(e.message);}
   }
+  async function upload(file:File,itemCode?:string){
+    if(!id)return;
+    setUploading(true);setMsg('');
+    try{
+      const headers:Record<string,string>={'Content-Type':'application/octet-stream','x-file-type':file.type,'x-file-name':file.name};
+      if(itemCode)headers['x-item-code']=itemCode;
+      const token=getToken();if(token)headers.Authorization='Bearer '+token;
+      const response=await fetch(API_URL+`/supervisions/${id}/attachments`,{method:'POST',headers,body:file});
+      const data=await response.json();
+      if(!response.ok)throw new Error(data.error||'Gagal mengunggah bukti');
+      setAttachments(xs=>[...xs,data.attachment]);setMsg('Bukti tersimpan.');
+    }catch(e:any){setMsg(e.message);}finally{setUploading(false);}
+  }
+  async function viewAttachment(file:Attachment){
+    try{const d=await api<{url:string}>(`/supervisions/${id}/attachments/${file.id}/url`);window.open(d.url,'_blank','noopener,noreferrer');}
+    catch(e:any){setMsg(e.message);}
+  }
+  async function removeAttachment(file:Attachment){
+    try{await api(`/supervisions/${id}/attachments/${file.id}`,{method:'DELETE'});setAttachments(xs=>xs.filter(x=>x.id!==file.id));}
+    catch(e:any){setMsg(e.message);}
+  }
+  async function submit(){
+    if(!id)return;setBusy(true);
+    try{await api(`/supervisions/${id}/submit`,{method:'POST'});setStatus('SUBMITTED');setMsg('Pengawasan diajukan.');}
+    catch(e:any){setMsg(e.message);}finally{setBusy(false);}
+  }
   async function finalize(){
     if(!id)return; if(!form.decision){setMsg('Pilih keputusan pengawasan sebelum finalisasi.');return;}
-    setBusy(true);try{await api(`/supervisions/${id}/finalize`,{method:'POST',body:{decision:form.decision,findings:form.findings||null,recommendation_notes:form.recommendation_notes||null}});setStatus('FINAL');setMsg('Pengawasan berhasil difinalisasi.');}catch(e:any){setMsg(e.message);}finally{setBusy(false);}
+    setBusy(true);try{await api(`/supervisions/${id}/finalize`,{method:'POST',body:{decision:form.decision,findings:form.findings||null,recommendation_notes:form.recommendation_notes||null,supervisor_1:form.supervisor_1,supervisor_2:form.supervisor_2,supervised_party:form.supervised_party}});setStatus('FINAL');setMsg('Pengawasan berhasil difinalisasi.');}catch(e:any){setMsg(e.message);}finally{setBusy(false);}
   }
   const disabled=status==='FINAL';
   return <><Link to={`${base}/pengawasan`} className="btn ghost sm" style={{marginBottom:14}}>← Kembali</Link>{msg&&<div className="dash-msg" style={{marginBottom:12}}>{msg}</div>}
@@ -79,6 +107,10 @@ export function SupervisionForm({base}:{base:string}) {
       <label className="form-label">Alamat kantor PPIU<textarea rows={2} disabled={disabled} value={form.ppiu_address} onChange={e=>set('ppiu_address',e.target.value)}/></label>
     </div></div>
     {editing&&<div className="dash-panel" style={{marginTop:16}}><div className="dash-panel-head"><h3>Checklist Pengawasan</h3><small>Iya / Tidak dan catatan pemeriksaan</small></div>{Array.from(new Set(items.map(x=>x.section))).map(section=><div key={section} style={{marginBottom:20}}><b style={{fontSize:12}}>{section}</b>{items.filter(x=>x.section===section).map(item=><div key={item.item_code} style={{display:'grid',gridTemplateColumns:'1fr auto',gap:12,padding:'12px 0',borderBottom:'1px solid var(--line)'}}><div><div style={{fontSize:12,fontWeight:700}}>{item.indicator}</div><input disabled={disabled} style={{marginTop:7,width:'100%'}} placeholder="Catatan pemeriksaan…" value={item.notes||''} onChange={e=>setItems(xs=>xs.map(x=>x.item_code===item.item_code?{...x,notes:e.target.value}:x))}/></div><div style={{display:'flex',gap:6,alignItems:'center'}}><button disabled={disabled} className={`btn sm ${item.result==='YES'?'primary':'ghost2'}`} onClick={()=>saveItem(item,'YES')}>Iya</button><button disabled={disabled} className={`btn sm ${item.result==='NO'?'primary':'ghost2'}`} onClick={()=>saveItem(item,'NO')}>Tidak</button></div></div>)}</div>)}</div>}
-    {editing&&<div className="dash-panel" style={{marginTop:16}}><div className="dash-panel-head"><h3>Rekapitulasi Evaluasi & Temuan Khusus</h3></div><label className="form-label">Catatan / deskripsi temuan<textarea rows={4} disabled={disabled} value={form.findings||''} onChange={e=>set('findings',e.target.value)}/></label><label className="form-label">Rekomendasi pengawas<textarea rows={3} disabled={disabled} value={form.recommendation_notes||''} onChange={e=>set('recommendation_notes',e.target.value)}/></label><label className="form-label">Keputusan<select disabled={disabled} value={form.decision||''} onChange={e=>set('decision',e.target.value)}><option value="">Pilih keputusan</option><option value="DIIZINKAN_BERANGKAT">DIIZINKAN BERANGKAT</option><option value="CATATAN_PERBAIKAN">CATATAN / PERBAIKAN</option><option value="PENUNDAAN_PENINDAKAN">PENUNDAAN / PENINDAKAN</option></select></label><div className="dash-grid cols-2"><label className="form-label">Pengawas 1<input disabled={disabled} value={form.supervisor_1||''} onChange={e=>set('supervisor_1',e.target.value)}/></label><label className="form-label">Pengawas 2<input disabled={disabled} value={form.supervisor_2||''} onChange={e=>set('supervisor_2',e.target.value)}/></label></div><label className="form-label">Pihak yang diawasi<input disabled={disabled} value={form.supervised_party||''} onChange={e=>set('supervised_party',e.target.value)}/></label>{!disabled?<div style={{display:'flex',gap:8,justifyContent:'flex-end'}}><button className="btn ghost2" onClick={saveHeader}>Simpan perubahan</button><button className="btn primary" disabled={busy} onClick={finalize}><CheckCircle2 size={16}/> Finalisasi Pengawasan</button></div>:<div className="dash-msg ok"><CheckCircle2 size={15}/> Pengawasan telah final dan dikunci.</div>}</div>}
+    {editing&&<div className="dash-panel" style={{marginTop:16}}><div className="dash-panel-head"><h3>Bukti pemeriksaan</h3></div>
+      {!disabled&&<label className="form-label">Foto kamera atau PDF (maksimal 8 MB)<input type="file" accept="image/jpeg,image/png,image/webp,application/pdf" capture="environment" disabled={uploading} onChange={e=>{const file=e.target.files?.[0];if(file)void upload(file);e.target.value='';}}/></label>}
+      {attachments.length===0?<small>Belum ada bukti.</small>:attachments.map(file=><div key={file.id} style={{display:'flex',gap:8,alignItems:'center',marginBottom:8}}><button className="btn ghost2 sm" onClick={()=>viewAttachment(file)}>{file.file_name}</button>{!disabled&&<button className="btn ghost2 sm" onClick={()=>removeAttachment(file)}>Hapus</button>}</div>)}
+    </div>}
+    {editing&&<div className="dash-panel" style={{marginTop:16}}><div className="dash-panel-head"><h3>Rekapitulasi Evaluasi & Temuan Khusus</h3></div><label className="form-label">Catatan / deskripsi temuan<textarea rows={4} disabled={disabled} value={form.findings||''} onChange={e=>set('findings',e.target.value)}/></label><label className="form-label">Rekomendasi pengawas<textarea rows={3} disabled={disabled} value={form.recommendation_notes||''} onChange={e=>set('recommendation_notes',e.target.value)}/></label><label className="form-label">Keputusan<select disabled={disabled} value={form.decision||''} onChange={e=>set('decision',e.target.value)}><option value="">Pilih keputusan</option><option value="DIIZINKAN_BERANGKAT">DIIZINKAN BERANGKAT</option><option value="CATATAN_PERBAIKAN">CATATAN / PERBAIKAN</option><option value="PENUNDAAN_PENINDAKAN">PENUNDAAN / PENINDAKAN</option></select></label><div className="dash-grid cols-2"><label className="form-label">Pengawas 1<input disabled={disabled} value={form.supervisor_1||''} onChange={e=>set('supervisor_1',e.target.value)}/></label><label className="form-label">Pengawas 2<input disabled={disabled} value={form.supervisor_2||''} onChange={e=>set('supervisor_2',e.target.value)}/></label></div><label className="form-label">Pihak yang diawasi<input disabled={disabled} value={form.supervised_party||''} onChange={e=>set('supervised_party',e.target.value)}/></label>{!disabled?<div style={{display:'flex',gap:8,justifyContent:'flex-end'}}><button className="btn ghost2" onClick={saveHeader}>Simpan perubahan</button>{status==='DRAFT'&&<button className="btn ghost2" disabled={busy} onClick={submit}>Ajukan pemeriksaan</button>}{status==='SUBMITTED'&&<button className="btn primary" disabled={busy} onClick={finalize}><CheckCircle2 size={16}/> Finalisasi Pengawasan</button>}</div>:<div className="dash-msg ok"><CheckCircle2 size={15}/> Pengawasan telah final dan dikunci.</div>}</div>}
   </>;
 }
