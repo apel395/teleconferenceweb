@@ -5,6 +5,7 @@ import {
   LogOut, Menu, MessageSquare, Phone, RefreshCw, Users, Video, X
 } from 'lucide-react';
 import { api, getUser } from '../lib/api';
+import { useAuth } from '../hooks/useAuth';
 import { SupervisionForm, SupervisionList } from './SupervisionPages';
 
 /* ---------- Types ---------- */
@@ -107,7 +108,7 @@ function useRole(base: string): 'pengguna' | 'konsultan' | 'admin' | 'pengawas' 
 export function DashboardShell({ base, children }: { base: string; children: React.ReactNode }) {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
-  const user = getUser();
+  const { user, logout: clearAuth } = useAuth();
   const role = useRole(base);
   const isAdmin = role === 'admin';
   const isCons = role === 'konsultan';
@@ -138,8 +139,7 @@ export function DashboardShell({ base, children }: { base: string; children: Rea
   const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 
   function logout() {
-    localStorage.removeItem('kemenhaj-token');
-    localStorage.removeItem('kemenhaj-user');
+    clearAuth();
     navigate('/masuk');
   }
 
@@ -798,10 +798,10 @@ function MeetingView({ base }: { base: string }) {
 /* ---------- Router ---------- */
 export function LiveDashboard({ base }: { base: string }) {
   const role = useRole(base);
-  const user = getUser();
+  const { user, isAuth } = useAuth();
   const isStaff = role === 'admin' || role === 'konsultan';
 
-  if (!user) return <AuthGuard />;
+  if (!user || !isAuth) return <Navigate to="/masuk?sesi=berakhir" replace />;
   if (isStaff && user.role !== role && user.role !== 'admin') return <AuthGuard />;
   if (!isStaff && user.role !== role) return <AuthGuard />;
   if (role === 'admin' && user.role === 'admin') return (
