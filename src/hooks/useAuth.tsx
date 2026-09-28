@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback } from 'react';
+import { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import {
   api,
@@ -43,6 +43,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
     setIsAuth(false);
   }, []);
+
+  useEffect(() => {
+    window.addEventListener('kemenhaj-session-expired', logout);
+    return () => window.removeEventListener('kemenhaj-session-expired', logout);
+  }, [logout]);
 
   return (
     <AuthContext.Provider value={{ user, isAuth, login, logout }}>
