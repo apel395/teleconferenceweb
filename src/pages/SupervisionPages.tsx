@@ -61,6 +61,7 @@ export function SupervisionForm({base}:{base:string}) {
   }
   async function upload(file:File,itemCode?:string){
     if(!id)return;
+    if(file.size>8*1024*1024){setMsg('Berkas melebihi 8 MB.');return;}
     setUploading(true);setMsg('');
     try{
       const headers:Record<string,string>={'Content-Type':'application/octet-stream','x-file-type':file.type,'x-file-name':encodeURIComponent(file.name)};
