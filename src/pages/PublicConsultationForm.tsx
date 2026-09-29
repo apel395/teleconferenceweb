@@ -82,7 +82,7 @@ export default function PublicConsultationForm() {
         {!success ? (
           <>
             <h1>{service.title}</h1>
-            <p>Kirim data dan dokumen untuk ditindaklanjuti petugas sesuai proses layanan yang berlaku.</p>
+            <p>Kirim informasi awal agar petugas dapat menindaklanjuti kebutuhan Anda.</p>
             <form onSubmit={onSubmit}>
               {error && <div className="form-error" role="alert">{error}</div>}
               <label>
