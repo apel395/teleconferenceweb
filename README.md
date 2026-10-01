@@ -52,7 +52,7 @@ Frontend tidak mengakses database secara langsung. Akses data operasional melalu
 | Database | Supabase PostgreSQL | Profiles, consultations, meetings, attendance, Pengawasan |
 | Auth | Supabase Auth + application JWT | Identity + session API |
 | File storage | Supabase Storage | Private evidence Pengawasan |
-| Video | Jitsi Meet | Ruang teleconference konsultasi |
+| Video | Google Meet (link dibuat petugas); Jitsi untuk jadwal lama | Ruang teleconference konsultasi |
 
 ## Role dan area aplikasi
 
@@ -113,7 +113,7 @@ vercel.json                  # SPA rewrite
 
 ## Teknologi
 
-React, TypeScript, Vite, React Router, Lucide React, Node.js 20+, Express, Supabase PostgreSQL/Auth/Storage, JWT, Render, Vercel, dan Jitsi Meet.
+React, TypeScript, Vite, React Router, Lucide React, Node.js 20+, Express, Supabase PostgreSQL/Auth/Storage, JWT, Render, Vercel, Google Meet, dan Jitsi untuk jadwal lama.
 
 ## Konfigurasi frontend
 
@@ -154,7 +154,7 @@ Perubahan yang membutuhkan schema baru (terutama Pengawasan) **tidak boleh di-me
 - Production: `main` (Pengawasan Phase 1 telah digabungkan).
 - Branch pengembangan `feature/pengawasan-phase-1` tetap tersedia untuk riwayat.
 
-## Prioritas berikutnya
+## Google Meet\n\nAdmin/konsultan membuat link di Google Meet (Rapat baru → Buat rapat untuk nanti), lalu menempelkannya saat menjadwalkan. Link dibuka di tab baru dari dashboard dan halaman cek status. Jadwal Jitsi lama dapat diganti dari detail konsultasi sebelum selesai atau dibatalkan. Pembuat link masuk ke Meet dengan akun Google yang sama agar dapat mengelola peserta. Pembuatan ruang otomatis belum diaktifkan karena memerlukan OAuth Google.\n\n## Prioritas berikutnya
 
 1. Uji end-to-end akun admin dan pengawas: checklist, foto, signed view/delete, submit, dan finalisasi.
 2. Verifikasi alur meeting/video call dan status pembatalan/penyelesaian.
