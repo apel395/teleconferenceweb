@@ -775,6 +775,12 @@ function MeetingView({ base }: { base: string }) {
           <Link className="btn ghost2 sm" to={`${base}/konsultasi`}>← Kembali</Link>
         </div>
       </div>
+      {room && (base === '/admin' || base === '/konsultan') && (
+        <div className="dash-msg" role="status" style={{ marginTop: 12 }}>
+          <b>Petugas memulai ruang sebagai moderator.</b> Jitsi meminta orang pertama masuk dengan akun Google, GitHub, atau Facebook. Akun admin Kemenhaj tidak otomatis menjadi moderator Jitsi.{' '}
+          <a href={room} target="_blank" rel="noopener noreferrer">Buka ruang Jitsi untuk masuk</a>, lalu peserta dapat bergabung.
+        </div>
+      )}
       <div style={{ marginTop: 12 }}>
         {room && !open ? (
           <button className="btn gold" style={{ marginBottom: 12 }} onClick={() => setOpen(true)}><Phone size={16} /> Saya siap, buka ruang video</button>
