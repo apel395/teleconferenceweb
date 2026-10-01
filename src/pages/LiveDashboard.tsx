@@ -5,6 +5,7 @@ import {
   LogOut, Menu, MessageSquare, Phone, RefreshCw, Users, Video, X
 } from 'lucide-react';
 import { api, getUser } from '../lib/api';
+import { googleMeetUrl, legacyJitsiUrl } from '../lib/meeting';
 import { useAuth } from '../hooks/useAuth';
 import { SupervisionForm, SupervisionList } from './SupervisionPages';
 
@@ -327,6 +328,7 @@ function SchedulingView({ base }: { base: string }) {
   const { list, loading, reload } = useConsultations();
   const [q, setQ] = useState('');
   const [schedAt, setSchedAt] = useState<Record<string, string>>({});
+  const [meetLinks, setMeetLinks] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState<Record<string, boolean>>({});
   const [msg, setMsg] = useState<Record<string, { ok: boolean; text: string }>>({});
 
@@ -338,10 +340,12 @@ function SchedulingView({ base }: { base: string }) {
   function jadwalkan(c: Consultation) {
     const at = schedAt[c.id];
     if (!at) { setMsg((m) => ({ ...m, [c.id]: { ok: false, text: 'Pilih tanggal dan waktu pertemuan dahulu.' } })); return; }
+    const link = googleMeetUrl(meetLinks[c.id]);
+    if (!link) { setMsg((m) => ({ ...m, [c.id]: { ok: false, text: 'Masukkan link Google Meet yang valid.' } })); return; }
     setBusy((b) => ({ ...b, [c.id]: true }));
     setMsg((m) => ({ ...m, [c.id]: { ok: true, text: '' } }));
-    api<{ meeting: Meeting }>('/meetings', { method: 'POST', body: { consultation_id: c.id, scheduled_at: new Date(at).toISOString() } })
-      .then(() => { setMsg((m) => ({ ...m, [c.id]: { ok: true, text: 'Jadwal dibuat. Ruang video Jitsi otomatis tersedia.' } })); setSchedAt((s) => ({ ...s, [c.id]: '' })); reload(); })
+    api<{ meeting: Meeting }>('/meetings', { method: 'POST', body: { consultation_id: c.id, scheduled_at: new Date(at).toISOString(), meeting_url: link } })
+      .then(() => { setMsg((m) => ({ ...m, [c.id]: { ok: true, text: 'Jadwal dan link Google Meet tersimpan.' } })); setSchedAt((s) => ({ ...s, [c.id]: '' })); reload(); })
       .catch((e: Error) => setMsg((m) => ({ ...m, [c.id]: { ok: false, text: e.message } })))
       .finally(() => setBusy((b) => ({ ...b, [c.id]: false })));
   }
@@ -357,6 +361,7 @@ function SchedulingView({ base }: { base: string }) {
           </div>
           <button className="btn ghost2 sm" onClick={reload}><RefreshCw size={14} /> Muat ulang</button>
         </div>
+        <p style={{ fontSize: 11, color: '#8a7e76' }}>Buat link di <a href="https://meet.google.com/" target="_blank" rel="noopener noreferrer">Google Meet</a> → Rapat baru → Buat rapat untuk nanti, lalu tempel link di bawah.</p>
         <div className="search-box" style={{ width: '100%', maxWidth: 'none', margin: '0 0 14px' }}>
           <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Cari ref, topik, atau pemohon…" />
         </div>
@@ -367,7 +372,7 @@ function SchedulingView({ base }: { base: string }) {
         ) : (
           <div className="table-wrap-live">
             <table className="table-live">
-              <thead><tr><th>Ref</th><th>Topik / pemohon</th><th>Status</th><th>Jadwal pertemuan (WIB)</th><th></th></tr></thead>
+              <thead><tr><th>Ref</th><th>Topik / pemohon</th><th>Status</th><th>Jadwal &amp; link Meet</th><th></th></tr></thead>
               <tbody>
                 {waiting.map((c) => (
                   <tr key={c.id}>
@@ -381,6 +386,7 @@ function SchedulingView({ base }: { base: string }) {
                     <td>{statusPill(c.status)}</td>
                     <td>
                       <input type="datetime-local" value={schedAt[c.id] || ''} onChange={(e) => setSchedAt((s) => ({ ...s, [c.id]: e.target.value }))} style={{ maxWidth: 215 }} />
+                      <input type="url" value={meetLinks[c.id] || ''} onChange={(e) => setMeetLinks((s) => ({ ...s, [c.id]: e.target.value }))} placeholder="https://meet.google.com/xxx-xxxx-xxx" aria-label="Link Google Meet" style={{ marginTop: 6, minWidth: 250 }} />
                       {msg[c.id]?.text && <small style={{ display: 'block', color: msg[c.id].ok ? 'var(--green)' : 'var(--red)', fontSize: 10, marginTop: 4 }}>{msg[c.id].text}</small>}
                     </td>
                     <td>
@@ -599,6 +605,8 @@ function ConsultationDetail({ base }: { base: string }) {
   const [err, setErr] = useState('');
   const [sched, setSched] = useState(false);
   const [schedAt, setSchedAt] = useState('');
+  const [schedLink, setSchedLink] = useState('');
+  const [replacementLink, setReplacementLink] = useState('');
   const [schedBusy, setSchedBusy] = useState(false);
   const [schedMsg, setSchedMsg] = useState('');
   const [notes, setNotes] = useState('');
@@ -622,12 +630,25 @@ function ConsultationDetail({ base }: { base: string }) {
 
   function schedule() {
     if (!schedAt) { setSchedMsg('Pilih tanggal dan waktu terlebih dahulu.'); return; }
+    const link = googleMeetUrl(schedLink);
+    if (!link) { setSchedMsg('Masukkan link Google Meet yang valid.'); return; }
     setSchedBusy(true); setSchedMsg('');
     api<{ meeting: Meeting }>('/meetings', {
       method: 'POST',
-      body: { consultation_id: id, scheduled_at: new Date(schedAt).toISOString() },
+      body: { consultation_id: id, scheduled_at: new Date(schedAt).toISOString(), meeting_url: link },
     })
-      .then((d) => { setMeetings((x) => [...x.filter((m) => m.id !== d.meeting.id), d.meeting]); setSched(false); setSchedMsg('Pertemuan berhasil dijadwalkan. Ruang Jitsi otomatis dibuat.'); })
+      .then((d) => { setMeetings((x) => [...x.filter((m) => m.id !== d.meeting.id), d.meeting]); setSched(false); setSchedMsg('Pertemuan berhasil dijadwalkan dengan Google Meet.'); })
+      .catch((e: Error) => setSchedMsg(e.message))
+      .finally(() => setSchedBusy(false));
+  }
+
+  function replaceLink() {
+    if (!meeting) return;
+    const link = googleMeetUrl(replacementLink);
+    if (!link) { setSchedMsg('Masukkan link Google Meet yang valid.'); return; }
+    setSchedBusy(true); setSchedMsg('');
+    api<{ meeting: Meeting }>(`/meetings/${meeting.id}/link`, { method: 'PATCH', body: { meeting_url: link } })
+      .then((d) => { setMeetings((all) => all.map((m) => m.id === d.meeting.id ? d.meeting : m)); setReplacementLink(''); setSchedMsg('Link Google Meet berhasil disimpan.'); })
       .catch((e: Error) => setSchedMsg(e.message))
       .finally(() => setSchedBusy(false));
   }
@@ -644,7 +665,7 @@ function ConsultationDetail({ base }: { base: string }) {
       .finally(() => setBusyStatus(false));
   }
   function startCall() {
-    setStatus(meeting ? 'berlangsung' : 'berlangsung');
+    if (c?.status !== 'berlangsung') setStatus('berlangsung');
     if (meeting?.meeting_url) nav(`${base}/meeting/${meeting.id}`);
   }
 
@@ -692,10 +713,17 @@ function ConsultationDetail({ base }: { base: string }) {
             <div style={{ display: 'grid', gap: 12 }}>
               <div className="detail-info">
                 <div><div className="field-lbl">Jadwal</div><div className="field-val">{fmtDate(meeting.scheduled_at)} {horario(meeting.scheduled_at)} WIB</div></div>
-                <div><div className="field-lbl">Ruang</div><div className="field-val">Jitsi Meet</div></div>
+                <div><div className="field-lbl">Ruang</div><div className="field-val">{googleMeetUrl(meeting.meeting_url) ? 'Google Meet' : 'Jitsi (jadwal lama)'}</div></div>
               </div>
               <div style={{ background: '#faf6f0', border: '1px solid var(--line)', borderRadius: 10, padding: 12, fontSize: 10, color: '#8a7e76', wordBreak: 'break-all' }}>{meeting.meeting_url}</div>
-              <button className="btn gold full" onClick={startCall}><Video size={16} /> Bergabung ke ruang video</button>
+              {!['selesai', 'dibatalkan'].includes(c.status) && <button className="btn gold full" onClick={startCall}><Video size={16} /> Bergabung ke ruang video</button>}
+              {isStaff && !['selesai', 'dibatalkan'].includes(c.status) && (
+                <div style={{ display: 'grid', gap: 8 }}>
+                  <a href="https://meet.google.com/" target="_blank" rel="noopener noreferrer" style={{ fontSize: 11 }}>Buat link Google Meet baru ↗</a>
+                  <input type="url" aria-label="Link Google Meet pengganti" placeholder="https://meet.google.com/xxx-xxxx-xxx" value={replacementLink} onChange={(e) => setReplacementLink(e.target.value)} />
+                  <button className="btn ghost2 sm" disabled={schedBusy} onClick={replaceLink}>{schedBusy ? 'Menyimpan…' : 'Ganti link meeting'}</button>
+                </div>
+              )}
             </div>
           ) : isStaff ? (
             <div style={{ display: 'grid', gap: 12 }}>
@@ -704,6 +732,10 @@ function ConsultationDetail({ base }: { base: string }) {
                 <>
                   <label className="form-label">Tanggal &amp; waktu pertemuan (WIB)
                     <input type="datetime-local" value={schedAt} onChange={(e) => setSchedAt(e.target.value)} />
+                  </label>
+                  <a href="https://meet.google.com/" target="_blank" rel="noopener noreferrer" style={{ fontSize: 11 }}>Buka Google Meet → Rapat baru → Buat rapat untuk nanti ↗</a>
+                  <label className="form-label">Link Google Meet
+                    <input type="url" placeholder="https://meet.google.com/xxx-xxxx-xxx" value={schedLink} onChange={(e) => setSchedLink(e.target.value)} />
                   </label>
                   <div style={{ display: 'flex', gap: 8 }}>
                     <button className="btn gold" disabled={schedBusy} onClick={schedule}>{schedBusy ? 'Membuat…' : 'Konfirmasi jadwal'} <CalendarPlus size={16} /></button>
@@ -748,21 +780,24 @@ function ConsultationDetail({ base }: { base: string }) {
   );
 }
 
-/* ---------- Jitsi meeting view ---------- */
+/* ---------- Meeting view ---------- */
 function MeetingView({ base }: { base: string }) {
   const { id } = useParams();
-  const fmtRoom = (url: string | null): string | null => {
-    if (!url) return null;
-    return url.includes('meet.jit.si') ? url : null;
-  };
   const [room, setRoom] = useState<string | null>(null);
   const [info, setInfo] = useState<string>('');
+  const [closed, setClosed] = useState(false);
   const [open, setOpen] = useState(false);
   useEffect(() => {
     api<{ meeting: Meeting }>(`/meetings/${id}`)
-      .then((d) => { setRoom(fmtRoom(d.meeting.meeting_url)); setInfo(`${fmtDate(d.meeting.scheduled_at)} ${horario(d.meeting.scheduled_at)} WIB`); })
+      .then((d) => {
+        setRoom(googleMeetUrl(d.meeting.meeting_url) || legacyJitsiUrl(d.meeting.meeting_url));
+        setClosed(['selesai', 'dibatalkan'].includes(d.meeting.consultations?.status || ''));
+        setInfo(`${fmtDate(d.meeting.scheduled_at)} ${horario(d.meeting.scheduled_at)} WIB`);
+      })
       .catch(() => setInfo('Tidak dapat memuat pertemuan.'));
   }, [id]);
+
+  const meet = googleMeetUrl(room);
 
   return (
     <div className="meeting-view">
@@ -775,14 +810,22 @@ function MeetingView({ base }: { base: string }) {
           <Link className="btn ghost2 sm" to={`${base}/konsultasi`}>← Kembali</Link>
         </div>
       </div>
-      {room && (base === '/admin' || base === '/konsultan') && (
+      {room && !meet && (base === '/admin' || base === '/konsultan') && (
         <div className="dash-msg" role="status" style={{ marginTop: 12 }}>
           <b>Petugas memulai ruang sebagai moderator.</b> Jitsi meminta orang pertama masuk dengan akun Google, GitHub, atau Facebook. Akun admin Kemenhaj tidak otomatis menjadi moderator Jitsi.{' '}
           <a href={room} target="_blank" rel="noopener noreferrer">Buka ruang Jitsi untuk masuk</a>, lalu peserta dapat bergabung.
         </div>
       )}
       <div style={{ marginTop: 12 }}>
-        {room && !open ? (
+        {closed ? (
+          <div className="empty-live"><b>Pertemuan telah ditutup</b><span>Hubungi petugas bila perlu menjadwalkan konsultasi baru.</span></div>
+        ) : meet ? (
+          <div className="dash-panel" style={{ marginTop: 12, display: 'grid', gap: 12 }}>
+            <b>Gabung melalui Google Meet</b>
+            <span>Ruang video terbuka di tab baru. Masuk dengan akun Google petugas yang membuat link agar dapat mengelola peserta.</span>
+            <a className="btn gold" href={meet} target="_blank" rel="noopener noreferrer"><Video size={16} /> Buka Google Meet ↗</a>
+          </div>
+        ) : room && !open ? (
           <button className="btn gold" style={{ marginBottom: 12 }} onClick={() => setOpen(true)}><Phone size={16} /> Saya siap, buka ruang video</button>
         ) : open ? (
           <div className="meeting-frame-wrap">
