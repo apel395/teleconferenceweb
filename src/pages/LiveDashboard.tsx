@@ -80,7 +80,7 @@ function initials(n: string) {
 }
 
 // Pelaporan services are processed as documents (no video call). Konsultasi
-// services (perizinan & travel, dst.) use scheduled Jitsi meetings.
+// services (perizinan & travel, dst.) use scheduled video meetings.
 const PELAPORAN_TOPICS = new Set([
   'Pelaporan Travel Umrah',
   'Pelaporan Jemaah Haji Khusus',
@@ -450,6 +450,10 @@ function MeetingList({ base }: { base: string }) {
               <td>
                 {m.consultations?.status === 'selesai' || m.consultations?.status === 'dibatalkan' ? (
                   <small style={{ color: '#9a8c83', fontWeight: 700 }}>Selesai</small>
+                ) : base === '/dashboard' ? (
+                  (googleMeetUrl(m.meeting_url) || legacyJitsiUrl(m.meeting_url)) ?
+                    <a className="btn gold join-call" href={(googleMeetUrl(m.meeting_url) || legacyJitsiUrl(m.meeting_url))!}><Video size={20} /> Masuk Video Call</a> :
+                    <small>Link belum tersedia</small>
                 ) : (
                   <Link className="btn gold sm" to={`${base}/meeting/${m.id}`}><Video size={13} /> Gabung</Link>
                 )}
@@ -715,8 +719,12 @@ function ConsultationDetail({ base }: { base: string }) {
                 <div><div className="field-lbl">Jadwal</div><div className="field-val">{fmtDate(meeting.scheduled_at)} {horario(meeting.scheduled_at)} WIB</div></div>
                 <div><div className="field-lbl">Ruang</div><div className="field-val">{googleMeetUrl(meeting.meeting_url) ? 'Google Meet' : 'Jitsi (jadwal lama)'}</div></div>
               </div>
-              <div style={{ background: '#faf6f0', border: '1px solid var(--line)', borderRadius: 10, padding: 12, fontSize: 10, color: '#8a7e76', wordBreak: 'break-all' }}>{meeting.meeting_url}</div>
-              {!['selesai', 'dibatalkan'].includes(c.status) && <button className="btn gold full" onClick={startCall}><Video size={16} /> Bergabung ke ruang video</button>}
+              {isStaff && <div style={{ background: '#faf6f0', border: '1px solid var(--line)', borderRadius: 10, padding: 12, fontSize: 10, color: '#8a7e76', wordBreak: 'break-all' }}>{meeting.meeting_url}</div>}
+              {!['selesai', 'dibatalkan'].includes(c.status) && (isStaff ?
+                <button className="btn gold full" onClick={startCall}><Video size={16} /> Bergabung ke ruang video</button> :
+                (googleMeetUrl(meeting.meeting_url) || legacyJitsiUrl(meeting.meeting_url)) &&
+                <a className="btn gold join-call" href={(googleMeetUrl(meeting.meeting_url) || legacyJitsiUrl(meeting.meeting_url))!}><Video size={22} /> Masuk Video Call</a>
+              )}
               {isStaff && !['selesai', 'dibatalkan'].includes(c.status) && (
                 <div style={{ display: 'grid', gap: 8 }}>
                   <a href="https://meet.google.com/" target="_blank" rel="noopener noreferrer" style={{ fontSize: 11 }}>Buat link Google Meet baru ↗</a>
@@ -790,12 +798,18 @@ function MeetingView({ base }: { base: string }) {
   useEffect(() => {
     api<{ meeting: Meeting }>(`/meetings/${id}`)
       .then((d) => {
-        setRoom(googleMeetUrl(d.meeting.meeting_url) || legacyJitsiUrl(d.meeting.meeting_url));
-        setClosed(['selesai', 'dibatalkan'].includes(d.meeting.consultations?.status || ''));
+        const link = googleMeetUrl(d.meeting.meeting_url) || legacyJitsiUrl(d.meeting.meeting_url);
+        const isClosed = ['selesai', 'dibatalkan'].includes(d.meeting.consultations?.status || '');
+        if (base === '/dashboard' && link && !isClosed) {
+          window.location.replace(link);
+          return;
+        }
+        setRoom(link);
+        setClosed(isClosed);
         setInfo(`${fmtDate(d.meeting.scheduled_at)} ${horario(d.meeting.scheduled_at)} WIB`);
       })
       .catch(() => setInfo('Tidak dapat memuat pertemuan.'));
-  }, [id]);
+  }, [id, base]);
 
   const meet = googleMeetUrl(room);
 
