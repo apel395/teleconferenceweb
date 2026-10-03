@@ -159,3 +159,11 @@ Perubahan yang membutuhkan schema baru (terutama Pengawasan) **tidak boleh di-me
 1. Uji end-to-end akun admin dan pengawas: checklist, foto, signed view/delete, submit, dan finalisasi.
 2. Verifikasi alur meeting/video call dan status pembatalan/penyelesaian.
 3. Lengkapi warning/referensi hukum, konten edukasi, direktori travel, dan penyempurnaan mobile.
+
+## Akses admin, staf, dan perusahaan travel — 3 Oktober 2026
+
+- Admin: menu **Akun & Travel** untuk mendaftarkan perusahaan, membuat akun staf/travel, serta mengatur keterkaitan akun travel. Admin tetap memiliki akses laporan kloter dan pengajuan PPIU.
+- Staf: area `/staff` untuk laporan kepulangan kloter dan pemeriksaan awal izin PPIU.
+- Perusahaan travel: area `/travel` untuk pengajuan awal PPIU dan riwayat perusahaan sendiri. Pengajuan awal bukan penerbitan izin nasional.
+
+Peran lama untuk konsultasi dan Pengawasan tetap tersedia. Belum ada akun staf/travel produksi dan belum ada data perusahaan riil; alur login dan isolasi perusahaan perlu diuji dengan akun uji yang dibuat admin. Pengajuan PPIU publik sebelumnya tidak otomatis menjadi riwayat akun travel. Dokumen izin dan alur layanan travel lain masih tahap berikutnya.
