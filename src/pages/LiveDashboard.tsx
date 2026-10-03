@@ -9,6 +9,7 @@ import { googleMeetUrl, legacyJitsiUrl } from '../lib/meeting';
 import { useAuth } from '../hooks/useAuth';
 import { SupervisionForm, SupervisionList } from './SupervisionPages';
 import { OperationsDashboard, ReturnReportEditor } from './OperationsPages';
+import { AccountsPage, TravelPage } from './AccountPages';
 
 /* ---------- Types ---------- */
 type Consultation = {
@@ -100,10 +101,12 @@ function isPelaporan(c: { topic?: string }): boolean {
 }
 
 /* ---------- Shell ---------- */
-function useRole(base: string): 'pengguna' | 'konsultan' | 'admin' | 'pengawas' {
+function useRole(base: string): 'pengguna' | 'konsultan' | 'admin' | 'pengawas' | 'staff' | 'travel' {
   if (base === '/konsultan') return 'konsultan';
   if (base === '/admin') return 'admin';
   if (base === '/pengawas') return 'pengawas';
+  if (base === '/staff') return 'staff';
+  if (base === '/travel') return 'travel';
   return 'pengguna';
 }
 
@@ -115,6 +118,8 @@ export function DashboardShell({ base, children }: { base: string; children: Rea
   const isAdmin = role === 'admin';
   const isCons = role === 'konsultan';
   const isSupervisor = role === 'pengawas';
+  const isOperationsStaff = role === 'staff';
+  const isTravel = role === 'travel';
 
   const nav: { to: string; label: string; icon: React.ReactNode }[] = [];
   if (isAdmin) {
@@ -122,9 +127,15 @@ export function DashboardShell({ base, children }: { base: string; children: Rea
     nav.push({ to: `${base}/pengajuan`, label: 'Pengajuan & Laporan', icon: <ClipboardList size={17} /> });
     nav.push({ to: `${base}/laporan-kloter`, label: 'Kepulangan Kloter', icon: <FileText size={17} /> });
     nav.push({ to: `${base}/izin-ppiu`, label: 'Izin PPIU', icon: <ClipboardCheck size={17} /> });
+    nav.push({ to: `${base}/akun`, label: 'Akun & Travel', icon: <Users size={17} /> });
     nav.push({ to: `${base}/pengawasan`, label: 'Pengawasan', icon: <ClipboardCheck size={17} /> });
     nav.push({ to: `${base}/konsultasi`, label: 'Konsultasi', icon: <MessageSquare size={17} /> });
     nav.push({ to: `${base}/video`, label: 'Video Call', icon: <Video size={17} /> });
+  } else if (isOperationsStaff) {
+    nav.push({ to: `${base}/laporan-kloter`, label: 'Kepulangan Kloter', icon: <FileText size={17} /> });
+    nav.push({ to: `${base}/izin-ppiu`, label: 'Izin PPIU', icon: <ClipboardCheck size={17} /> });
+  } else if (isTravel) {
+    nav.push({ to: `${base}`, label: 'Pengajuan perusahaan', icon: <ClipboardList size={17} /> });
   } else if (isCons) {
     nav.push({ to: `${base}`, label: 'Ringkasan', icon: <LayoutDashboard size={17} /> });
     nav.push({ to: `${base}/penjadwalan`, label: 'Penjadwalan', icon: <CalendarDays size={17} /> });
@@ -139,7 +150,7 @@ export function DashboardShell({ base, children }: { base: string; children: Rea
     nav.push({ to: `${base}/video`, label: 'Video Call', icon: <Video size={17} /> });
   }
 
-  const roleLabel = isAdmin ? 'Administrator' : isCons ? 'Konsultan' : isSupervisor ? 'Pengawas' : 'Pengguna';
+  const roleLabel = isAdmin ? 'Administrator' : isOperationsStaff ? 'Staf' : isTravel ? 'Perusahaan Travel' : isCons ? 'Konsultan' : isSupervisor ? 'Pengawas' : 'Pengguna';
   const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 
   function logout() {
@@ -869,7 +880,8 @@ export function LiveDashboard({ base }: { base: string }) {
 
   if (!user || !isAuth) return <Navigate to="/masuk?sesi=berakhir" replace />;
   if (isStaff && user.role !== role && user.role !== 'admin') return <AuthGuard />;
-  if (!isStaff && user.role !== role) return <AuthGuard />;
+  if (!isStaff && user.role !== role && !(role === 'staff' && user.role === 'admin')) return <AuthGuard />;
+  if (role === 'staff' && user.role === 'admin') return <Navigate to="/admin/laporan-kloter" replace />;
   if (role === 'admin' && user.role === 'admin') return (
     <DashboardShell base={base}>
       <Routes>
@@ -878,6 +890,7 @@ export function LiveDashboard({ base }: { base: string }) {
         <Route path="laporan-kloter" element={<OperationsDashboard base={base} kind="returns" />} />
         <Route path="laporan-kloter/:id" element={<ReturnReportEditor base={base} />} />
         <Route path="izin-ppiu" element={<OperationsDashboard base={base} kind="ppiu" />} />
+        <Route path="akun" element={<AccountsPage />} />
         <Route path="pengawasan" element={<SupervisionList base={base} />} />
         <Route path="pengawasan/baru" element={<SupervisionForm base={base} />} />
         <Route path="pengawasan/:id" element={<SupervisionForm base={base} />} />
@@ -887,6 +900,17 @@ export function LiveDashboard({ base }: { base: string }) {
         <Route path="video" element={<MeetingList base={base} />} />
       </Routes>
     </DashboardShell>
+  );
+  if (role === 'staff' && user.role === 'staff') return (
+    <DashboardShell base={base}><Routes>
+      <Route path="" element={<Navigate to={`${base}/laporan-kloter`} replace />} />
+      <Route path="laporan-kloter" element={<OperationsDashboard base={base} kind="returns" />} />
+      <Route path="laporan-kloter/:id" element={<ReturnReportEditor base={base} />} />
+      <Route path="izin-ppiu" element={<OperationsDashboard base={base} kind="ppiu" />} />
+    </Routes></DashboardShell>
+  );
+  if (role === 'travel' && user.role === 'travel') return (
+    <DashboardShell base={base}><Routes><Route path="" element={<TravelPage />} /></Routes></DashboardShell>
   );
   if (role === 'pengawas' && user.role === 'pengawas') return (
     <DashboardShell base={base}>
