@@ -8,6 +8,7 @@ import { api, getUser } from '../lib/api';
 import { googleMeetUrl, legacyJitsiUrl } from '../lib/meeting';
 import { useAuth } from '../hooks/useAuth';
 import { SupervisionForm, SupervisionList } from './SupervisionPages';
+import { OperationsDashboard, ReturnReportEditor } from './OperationsPages';
 
 /* ---------- Types ---------- */
 type Consultation = {
@@ -119,6 +120,8 @@ export function DashboardShell({ base, children }: { base: string; children: Rea
   if (isAdmin) {
     nav.push({ to: `${base}`, label: 'Ringkasan', icon: <LayoutDashboard size={17} /> });
     nav.push({ to: `${base}/pengajuan`, label: 'Pengajuan & Laporan', icon: <ClipboardList size={17} /> });
+    nav.push({ to: `${base}/laporan-kloter`, label: 'Kepulangan Kloter', icon: <FileText size={17} /> });
+    nav.push({ to: `${base}/izin-ppiu`, label: 'Izin PPIU', icon: <ClipboardCheck size={17} /> });
     nav.push({ to: `${base}/pengawasan`, label: 'Pengawasan', icon: <ClipboardCheck size={17} /> });
     nav.push({ to: `${base}/konsultasi`, label: 'Konsultasi', icon: <MessageSquare size={17} /> });
     nav.push({ to: `${base}/video`, label: 'Video Call', icon: <Video size={17} /> });
@@ -872,6 +875,9 @@ export function LiveDashboard({ base }: { base: string }) {
       <Routes>
         <Route path="" element={<Overview base={base} />} />
         <Route path="pengajuan" element={<Submissions base={base} />} />
+        <Route path="laporan-kloter" element={<OperationsDashboard base={base} kind="returns" />} />
+        <Route path="laporan-kloter/:id" element={<ReturnReportEditor base={base} />} />
+        <Route path="izin-ppiu" element={<OperationsDashboard base={base} kind="ppiu" />} />
         <Route path="pengawasan" element={<SupervisionList base={base} />} />
         <Route path="pengawasan/baru" element={<SupervisionForm base={base} />} />
         <Route path="pengawasan/:id" element={<SupervisionForm base={base} />} />
