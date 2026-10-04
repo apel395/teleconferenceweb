@@ -9,6 +9,7 @@ import { googleMeetUrl, legacyJitsiUrl } from '../lib/meeting';
 import { useAuth } from '../hooks/useAuth';
 import { SupervisionForm, SupervisionList } from './SupervisionPages';
 import { OperationsDashboard, ReturnReportEditor } from './OperationsPages';
+import ManifestPage from './ManifestPage';
 import { AccountsPage, TravelPage } from './AccountPages';
 
 /* ---------- Types ---------- */
@@ -112,6 +113,12 @@ function useRole(base: string): 'pengguna' | 'konsultan' | 'admin' | 'pengawas' 
 
 export function DashboardShell({ base, children }: { base: string; children: React.ReactNode }) {
   const [open, setOpen] = useState(false);
+  const [sidebarHidden, setSidebarHidden] = useState(() => {
+    try { return localStorage.getItem('kemenhaj-sidebar-hidden') === 'true'; } catch { return false; }
+  });
+  useEffect(() => {
+    try { localStorage.setItem('kemenhaj-sidebar-hidden', String(sidebarHidden)); } catch { /* Storage can be disabled. */ }
+  }, [sidebarHidden]);
   const navigate = useNavigate();
   const { user, logout: clearAuth } = useAuth();
   const role = useRole(base);
@@ -126,6 +133,7 @@ export function DashboardShell({ base, children }: { base: string; children: Rea
   if (isAdmin) {
     nav.push({ to: `${base}`, label: 'Ringkasan', icon: <LayoutDashboard size={17} /> });
     nav.push({ to: `${base}/pengajuan`, label: 'Pengajuan & Laporan', icon: <ClipboardList size={17} /> });
+    nav.push({ to: `${base}/jemaah`, label: 'Data Jemaah', icon: <Users size={17} /> });
     nav.push({ to: `${base}/laporan-kloter`, label: 'Kepulangan Kloter', icon: <FileText size={17} /> });
     nav.push({ to: `${base}/izin-ppiu`, label: 'Izin PPIU', icon: <ClipboardCheck size={17} /> });
     nav.push({ to: `${base}/akun`, label: 'Akun & Peran', icon: <Users size={17} /> });
@@ -134,6 +142,7 @@ export function DashboardShell({ base, children }: { base: string; children: Rea
     nav.push({ to: `${base}/penjadwalan`, label: 'Permintaan Video Call', icon: <CalendarDays size={17} /> });
     nav.push({ to: `${base}/video`, label: 'Video Call', icon: <Video size={17} /> });
   } else if (isOperationsStaff) {
+    nav.push({ to: `${base}/jemaah`, label: 'Data Jemaah', icon: <Users size={17} /> });
     nav.push({ to: `${base}/laporan-kloter`, label: 'Kepulangan Kloter', icon: <FileText size={17} /> });
     nav.push({ to: `${base}/izin-ppiu`, label: 'Izin PPIU', icon: <ClipboardCheck size={17} /> });
   } else if (isTravel) {
@@ -161,8 +170,8 @@ export function DashboardShell({ base, children }: { base: string; children: Rea
   }
 
   return (
-    <div className="dash-shell">
-      <aside className={`dash-sidebar ${open ? 'open' : ''}`}>
+    <div className={`dash-shell ${sidebarHidden ? 'sidebar-hidden' : ''}`}>
+      <aside id="dashboard-sidebar" className={`dash-sidebar ${open ? 'open' : ''}`}>
         <div className="dash-side-top">
           <Link to="/" className="dash-brand"><img className="brand-logo" src="/logo-kemenhaj.png" alt="Logo Kemenhaj Riau"/><span className="brand-copy"><b>KEMENHAJ&nbsp;Riau</b><small>Portal Riau</small></span></Link>
           <div className="dash-role"><Users size={14} /> {roleLabel}</div>
@@ -187,7 +196,8 @@ export function DashboardShell({ base, children }: { base: string; children: Rea
       {open && <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.4)', zIndex: 55 }} onClick={() => setOpen(false)} />}
       <div className="dash-main">
         <header className="dash-topbar">
-          <button className="mobile-menu" onClick={() => setOpen(!open)} aria-label="Menu"><Menu size={18} /></button>
+          <button className="sidebar-desktop-toggle" onClick={() => setSidebarHidden(hidden => !hidden)} aria-controls="dashboard-sidebar" aria-expanded={!sidebarHidden} aria-label={sidebarHidden ? 'Tampilkan sidebar' : 'Sembunyikan sidebar'} title={sidebarHidden ? 'Tampilkan sidebar' : 'Sembunyikan sidebar'}><Menu size={20} /></button>
+          <button className="sidebar-mobile-toggle" onClick={() => setOpen(!open)} aria-controls="dashboard-sidebar" aria-expanded={open} aria-label={open ? 'Tutup menu' : 'Buka menu'}><Menu size={20} /></button>
           <div>
             <h1>{[...nav].sort((a,b)=>b.to.length-a.to.length).find(n=>location.pathname===n.to || (n.to!==base && location.pathname.startsWith(n.to+'/')))?.label || nav[0]?.label}</h1>
             <p>{today}</p>
@@ -890,6 +900,7 @@ export function LiveDashboard({ base }: { base: string }) {
       <Routes>
         <Route path="" element={<Overview base={base} />} />
         <Route path="pengajuan" element={<Submissions base={base} />} />
+        <Route path="jemaah" element={<ManifestPage />} />
         <Route path="laporan-kloter" element={<OperationsDashboard base={base} kind="returns" />} />
         <Route path="laporan-kloter/:id" element={<ReturnReportEditor base={base} />} />
         <Route path="izin-ppiu" element={<OperationsDashboard base={base} kind="ppiu" />} />
@@ -908,7 +919,8 @@ export function LiveDashboard({ base }: { base: string }) {
   if (role === 'staff' && user.role === 'staff') return (
     <DashboardShell base={base}><Routes>
       <Route path="" element={<Navigate to={`${base}/laporan-kloter`} replace />} />
-      <Route path="laporan-kloter" element={<OperationsDashboard base={base} kind="returns" />} />
+      <Route path="jemaah" element={<ManifestPage />} />
+        <Route path="laporan-kloter" element={<OperationsDashboard base={base} kind="returns" />} />
       <Route path="laporan-kloter/:id" element={<ReturnReportEditor base={base} />} />
       <Route path="izin-ppiu" element={<OperationsDashboard base={base} kind="ppiu" />} />
     </Routes></DashboardShell>
