@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, Navigate, NavLink, Route, Routes, useNavigate, useParams } from 'react-router-dom';
+import { Link, Navigate, NavLink, Route, Routes, useNavigate, useParams, useLocation } from 'react-router-dom';
 import {
   CalendarDays, CalendarPlus, CheckCircle2, ClipboardCheck, ClipboardList, FileText, LayoutDashboard,
   LogOut, Menu, MessageSquare, Phone, RefreshCw, Users, Video, X
@@ -115,6 +115,7 @@ export function DashboardShell({ base, children }: { base: string; children: Rea
   const navigate = useNavigate();
   const { user, logout: clearAuth } = useAuth();
   const role = useRole(base);
+  const location = useLocation();
   const isAdmin = role === 'admin';
   const isCons = role === 'konsultan';
   const isSupervisor = role === 'pengawas';
@@ -127,9 +128,10 @@ export function DashboardShell({ base, children }: { base: string; children: Rea
     nav.push({ to: `${base}/pengajuan`, label: 'Pengajuan & Laporan', icon: <ClipboardList size={17} /> });
     nav.push({ to: `${base}/laporan-kloter`, label: 'Kepulangan Kloter', icon: <FileText size={17} /> });
     nav.push({ to: `${base}/izin-ppiu`, label: 'Izin PPIU', icon: <ClipboardCheck size={17} /> });
-    nav.push({ to: `${base}/akun`, label: 'Akun & Travel', icon: <Users size={17} /> });
+    nav.push({ to: `${base}/akun`, label: 'Akun & Peran', icon: <Users size={17} /> });
     nav.push({ to: `${base}/pengawasan`, label: 'Pengawasan', icon: <ClipboardCheck size={17} /> });
     nav.push({ to: `${base}/konsultasi`, label: 'Konsultasi', icon: <MessageSquare size={17} /> });
+    nav.push({ to: `${base}/penjadwalan`, label: 'Permintaan Video Call', icon: <CalendarDays size={17} /> });
     nav.push({ to: `${base}/video`, label: 'Video Call', icon: <Video size={17} /> });
   } else if (isOperationsStaff) {
     nav.push({ to: `${base}/laporan-kloter`, label: 'Kepulangan Kloter', icon: <FileText size={17} /> });
@@ -171,6 +173,7 @@ export function DashboardShell({ base, children }: { base: string; children: Rea
               {n.icon}{n.label}
             </NavLink>
           ))}
+          <Link to="/request-video-call" onClick={() => setOpen(false)}><Video size={17} /> Minta Video Call</Link>
           <Link to="/" onClick={() => setOpen(false)}><FileText size={17} /> Situs publik</Link>
         </nav>
         <div className="dash-side-foot">
@@ -186,7 +189,7 @@ export function DashboardShell({ base, children }: { base: string; children: Rea
         <header className="dash-topbar">
           <button className="mobile-menu" onClick={() => setOpen(!open)} aria-label="Menu"><Menu size={18} /></button>
           <div>
-            <h1>{nav[0]?.label}</h1>
+            <h1>{[...nav].sort((a,b)=>b.to.length-a.to.length).find(n=>location.pathname===n.to || (n.to!==base && location.pathname.startsWith(n.to+'/')))?.label || nav[0]?.label}</h1>
             <p>{today}</p>
           </div>
           <div className="dash-top-actions">
@@ -339,7 +342,7 @@ function Overview({ base }: { base: string }) {
 
 /* ---------- Scheduling (konsultan) ---------- */
 function SchedulingView({ base }: { base: string }) {
-  const { list, loading, reload } = useConsultations();
+  const { list, loading, error, reload } = useConsultations();
   const [q, setQ] = useState('');
   const [schedAt, setSchedAt] = useState<Record<string, string>>({});
   const [meetLinks, setMeetLinks] = useState<Record<string, string>>({});
@@ -379,7 +382,7 @@ function SchedulingView({ base }: { base: string }) {
         <div className="search-box" style={{ width: '100%', maxWidth: 'none', margin: '0 0 14px' }}>
           <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Cari ref, topik, atau pemohon…" />
         </div>
-        {loading ? (
+        {error ? <p className="form-error" role="alert">{error}</p> : loading ? (
           <div className="empty-live"><b>Memuat…</b></div>
         ) : waiting.length === 0 ? (
           <div className="empty-live"><ClipboardList size={26} /><b>Tidak ada pengajuan menunggu</b><span>Semua permintaan sudah dijadwalkan.</span></div>
@@ -890,6 +893,7 @@ export function LiveDashboard({ base }: { base: string }) {
         <Route path="laporan-kloter" element={<OperationsDashboard base={base} kind="returns" />} />
         <Route path="laporan-kloter/:id" element={<ReturnReportEditor base={base} />} />
         <Route path="izin-ppiu" element={<OperationsDashboard base={base} kind="ppiu" />} />
+        <Route path="penjadwalan" element={<SchedulingView base={base} />} />
         <Route path="akun" element={<AccountsPage />} />
         <Route path="pengawasan" element={<SupervisionList base={base} />} />
         <Route path="pengawasan/baru" element={<SupervisionForm base={base} />} />
