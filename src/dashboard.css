@@ -122,3 +122,28 @@
   .dash-content{padding:20px 16px 50px}
   .dash-topbar{padding:14px 16px}
 }
+
+/* Account and operational forms */
+.dash-page-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:22px}
+.dash-page-head h1{margin:0;font-size:24px}.dash-page-head p{color:#776b62;line-height:1.6}
+.managed-forms .dash-panel h2{margin:0 0 10px;font-size:18px}
+.managed-forms .dash-panel>p{color:#776b62;line-height:1.6;font-size:13px}
+.account-panels{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.35fr);gap:20px;align-items:start}
+.managed-form{max-width:900px}.managed-form>fieldset{border:0;padding:0;margin:0;min-width:0;display:grid;gap:18px}
+.managed-forms label,.managed-form label{display:grid;gap:7px;min-width:0;font-size:13px;font-weight:600;color:#514137}
+.managed-forms input,.managed-forms select,.managed-forms textarea,.managed-form input,.managed-form select,.managed-form textarea{box-sizing:border-box;display:block;width:100%;min-height:46px;border:1px solid #d8cfc6;border-radius:9px;background:#fff;padding:11px 12px;font:inherit;color:#33251d}
+.managed-forms :is(input,select,textarea):focus-visible,.managed-form :is(input,select,textarea):focus-visible{outline:2px solid #ab8048;outline-offset:2px}
+.managed-forms textarea,.managed-form textarea{resize:vertical}.managed-forms small{font-size:12px;font-weight:400;color:#776b62;line-height:1.5}
+.managed-forms .btn,.managed-form .btn{min-height:44px;justify-self:start}.managed-forms :disabled,.managed-form :disabled{opacity:.65;cursor:not-allowed}
+.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}.spaced-panel{margin-top:20px}
+.form-notice{background:#eef6ed;color:#315a33;padding:14px 16px;border-radius:10px;border:1px solid #c9dfc7}
+.account-row{padding:20px 0;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:24px}
+.account-identity{display:grid;gap:6px;min-width:0}.account-identity span{font-size:13px;overflow-wrap:anywhere}
+.role-badge{background:#f4ead6;color:#785b2c;border-radius:6px;padding:4px 8px;justify-self:start}
+.role-editor{display:flex;align-items:end;gap:12px;flex-wrap:wrap}.role-editor label{min-width:170px;flex:1}.role-editor .btn{white-space:nowrap}
+.account-search{max-width:480px;margin:18px 0}.role-guide{margin-top:20px;font-size:13px;line-height:1.6}.role-guide summary{cursor:pointer;font-weight:700}
+.managed-form fieldset.operations-group{border:1px solid var(--line);border-radius:10px;padding:16px;min-width:0}
+.operations-group legend{font-weight:700;padding:0 8px}.operations-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:12px 0 20px}
+.video-request .login-card{max-width:640px}.video-request h1{font-size:30px}.video-request p{font-size:16px;line-height:1.6}.video-request label{font-size:16px}.video-request input,.video-request textarea{font-size:16px;min-height:50px}.video-request .btn{min-height:54px;font-size:17px}.request-reference{overflow-wrap:anywhere;font-size:22px;font-weight:800;background:#faf6f0;padding:18px;border-radius:10px;margin:20px 0}
+@media(max-width:1000px){.account-panels{grid-template-columns:1fr}.account-row{align-items:start;flex-direction:column}.role-editor{width:100%}}
+@media(max-width:600px){.form-grid,.operations-row{grid-template-columns:1fr}.dash-page-head{flex-direction:column}.role-editor{flex-direction:column;align-items:stretch}.role-editor label{width:100%;min-width:0}.role-editor .btn{width:100%}.managed-forms .dash-panel{padding:18px}.video-request .login-card{padding:24px 18px}.video-request h1{font-size:26px}}
