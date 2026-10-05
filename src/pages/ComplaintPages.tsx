@@ -1,0 +1,77 @@
+import { useEffect, useState } from 'react';
+import { Link, useParams } from 'react-router-dom';
+import { api, API_URL } from '../lib/api';
+
+const root='/consultations/complaints';
+const chronologyLabels=['Awal mendaftar / komunikasi awal','Pembayaran (DP/lunas)','Janji keberangkatan / perubahan jadwal','Gagal berangkat / alasan dari pihak travel','Upaya meminta refund / respons travel'];
+const requestOptions=['Berangkat sesuai paket','Refund penuh','Refund bertahap','Ganti rugi','Mediasi','Lainnya'];
+const evidenceOptions=['KTP','Bukti transfer/kuitansi','Brosur paket','Kontrak/perjanjian','Chat WA/email','Foto kantor','Bukti tiket/visa','Lainnya'];
+type Field={key:string;label:string;type?:string;required?:boolean;max?:number};
+const sections:{title:string;fields:Field[]}[]=[
+ {title:'A. Identitas Pelapor/Jemaah',fields:[{key:'name',label:'Nama lengkap',required:true},{key:'nik',label:'NIK (16 digit)',required:true},{key:'address',label:'Alamat',required:true,max:1000},{key:'phone',label:'No. HP/WA',type:'tel',required:true},{key:'email',label:'Email (jika ada)',type:'email'}]},
+ {title:'B. Identitas Penyelenggara Haji Khusus/Umrah',fields:[{key:'travel_name',label:'Nama Travel/PPIU/PIHK',required:true},{key:'travel_address',label:'Alamat kantor (jika tahu)',max:1000},{key:'travel_contact',label:'Nama Direktur/CS'},{key:'travel_phone',label:'No. HP/WA travel',type:'tel'}]},
+ {title:'C. Data Paket Haji Khusus/Umrah yang Dibeli',fields:[{key:'package_name',label:'Nama paket',required:true},{key:'departure',label:'Jadwal berangkat dijanjikan',type:'date'},{key:'duration',label:'Lama perjalanan (misalnya 12 hari)'},{key:'price',label:'Harga per jemaah (Rp)',type:'number'},{key:'pilgrims',label:'Jumlah jemaah (orang)',type:'number'}]},
+];
+type FormData=Record<string,string>;
+type Chronology={date:string;description:string};
+type Receipt={id:string;reference:string;status:string;upload_token:string};
+type Complaint={id:string;reference:string;reporter_name?:string;travel_name?:string;status:string;public_notes:string;created_at:string;form_data:FormData&{chronology:Chronology[];requests:string[];evidence:string[];declaration:boolean}};
+function status(s:string){return ({menunggu:'Menunggu',diproses:'Diproses',selesai:'Selesai',dikembalikan:'Perlu dilengkapi'} as Record<string,string>)[s]||s;}
+
+export default function ComplaintForm(){
+ const [form,setForm]=useState<FormData>({payment_proof:'',signed_date:new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Jakarta'})});
+ const [chronology,setChronology]=useState<Chronology[]>(chronologyLabels.map(()=>({date:'',description:''})));
+ const [requests,setRequests]=useState<string[]>([]),[evidence,setEvidence]=useState<string[]>([]),[declaration,setDeclaration]=useState(false);
+ const [files,setFiles]=useState<(File|null)[]>(evidenceOptions.map(()=>null));
+ const [uploaded,setUploaded]=useState<number[]>([]),[receipt,setReceipt]=useState<Receipt|null>(null);
+ const [busy,setBusy]=useState(false),[error,setError]=useState('');
+ const [lookup,setLookup]=useState({reference:'',phone:''}),[tracked,setTracked]=useState<{status:string;public_notes:string}|null>(null);
+ const update=(key:string,value:string)=>setForm(f=>({...f,[key]:value}));
+ function field(f:Field){return <label key={f.key}>{f.label}{f.required?' *':''}<input name={f.key} type={f.type||'text'} value={form[f.key]||''} required={f.required} maxLength={f.key==='nik'?16:f.max||500} pattern={f.key==='nik'?'[0-9]{16}':undefined} inputMode={f.key==='nik'?'numeric':undefined} min={f.type==='number'?f.key==='pilgrims'?1:0:undefined} step={f.type==='number'?f.key==='pilgrims'?1:'0.01':undefined} onChange={e=>update(f.key,e.target.value)}/></label>}
+ const toggle=(value:string,list:string[],set:(v:string[])=>void)=>set(list.includes(value)?list.filter(x=>x!==value):[...list,value]);
+ async function send(e:React.FormEvent){
+  e.preventDefault();setBusy(true);setError('');
+  let saved=receipt;
+  try{
+   if(!saved){const result=await api<{complaint:Omit<Receipt,'upload_token'>;upload_token:string}>(root+'/public',{method:'POST',body:{...form,chronology,requests,evidence,declaration}});saved={...result.complaint,upload_token:result.upload_token};setReceipt(saved);setLookup({reference:saved.reference,phone:form.phone});}
+   for(let i=0;i<files.length;i++)if(files[i]&&!uploaded.includes(i)){
+    const file=files[i]!;
+    const res=await fetch(`${API_URL}${root}/${saved.id}/files/${i+1}`,{method:'POST',headers:{'Content-Type':'application/octet-stream','x-upload-token':saved.upload_token,'x-file-type':file.type,'x-file-name':encodeURIComponent(file.name)},body:file});
+    if(!res.ok){const data=await res.json().catch(()=>({}));throw Error(`${file.name}: ${data.error||'Gagal unggah.'} Pengaduan sudah tersimpan. Tekan Coba unggah kembali.`)}
+    setUploaded(a=>[...a,i]);
+   }
+  }catch(e){setError(e instanceof Error?e.message:'Gagal mengirim pengaduan.')}finally{setBusy(false)}
+ }
+ async function track(e:React.FormEvent){e.preventDefault();setBusy(true);setError('');setTracked(null);try{const d=await api<{complaint:{status:string;public_notes:string}}>(root+'/track',{method:'POST',body:lookup});setTracked(d.complaint)}catch(e){setError((e as Error).message)}finally{setBusy(false)}}
+ const pending=files.some((file,i)=>file&&!uploaded.includes(i));
+ return <main className="section complaint-page"><div className="container managed-form">
+  <Link to="/layanan/permasalahan-umrah-haji-khusus">← Kembali ke layanan</Link>
+  <h1>Form Kronologi Pengaduan Korban/Jemaah Haji Khusus dan Umrah</h1>
+  <p>Kantor Wilayah Kemenhaj Provinsi Riau. Isi sesuai kejadian. Kolom bertanda * wajib diisi; jika tanggal atau informasi tidak diketahui, biarkan kosong dan jelaskan pada uraian.</p>
+  {error&&<p className="form-error" role="alert">{error}</p>}
+  {!receipt?<form onSubmit={send} className="complaint-form">
+   <fieldset disabled={busy} className="complaint-fields">
+    {sections.map(s=><fieldset className="operations-group" key={s.title}><legend>{s.title}</legend><div className="form-grid">{s.fields.map(field)}</div></fieldset>)}
+    <fieldset className="operations-group"><legend>D. Kronologi Kejadian</legend><p>Tuliskan secara berurutan. Isi setidaknya satu uraian.</p>{chronologyLabels.map((label,i)=><div className="chronology-block" key={label}><h3>{i+1}. {label}</h3><label>Tanggal<input type="date" value={chronology[i].date} onChange={e=>setChronology(a=>a.map((x,j)=>j===i?{...x,date:e.target.value}:x))}/></label><label>Uraian<textarea rows={4} maxLength={4000} value={chronology[i].description} onChange={e=>setChronology(a=>a.map((x,j)=>j===i?{...x,description:e.target.value}:x))}/></label></div>)}</fieldset>
+    <fieldset className="operations-group"><legend>E. Kerugian dan Permohonan Pelapor</legend><div className="form-grid">{field({key:'loss',label:'Total kerugian (Rp)',type:'number'})}<label>Bukti pembayaran *<select required value={form.payment_proof} onChange={e=>update('payment_proof',e.target.value)}><option value="">Pilih</option><option>Ada</option><option>Tidak Ada</option></select></label></div><p>Permohonan pelapor * (boleh lebih dari satu)</p><div className="complaint-checks">{requestOptions.map(x=><label key={x}><input type="checkbox" checked={requests.includes(x)} onChange={()=>toggle(x,requests,setRequests)}/>{x}</label>)}</div>{requests.includes('Lainnya')&&field({key:'request_other',label:'Permohonan lainnya',required:true})}</fieldset>
+    <fieldset className="operations-group"><legend>F. Daftar Bukti yang Dilampirkan</legend><p>Tandai bukti yang tersedia dan unggah berkasnya. JPG, PNG, atau PDF, maksimal 8 MB per jenis bukti. Gabungkan beberapa halaman menjadi satu PDF bila perlu. Bukti hanya dapat dibuka oleh admin/staf.</p>{evidenceOptions.map((x,i)=><div className="evidence-row" key={x}><label className="complaint-check"><input type="checkbox" checked={evidence.includes(x)} onChange={()=>{toggle(x,evidence,setEvidence);if(evidence.includes(x))setFiles(a=>a.map((f,j)=>j===i?null:f))}}/>{x}</label>{evidence.includes(x)&&<label>Unggah {x}<input type="file" accept="image/jpeg,image/png,application/pdf" onChange={e=>{const file=e.target.files?.[0]||null;if(file&&(file.size>8388608||!['image/jpeg','image/png','application/pdf'].includes(file.type))){setError('Gunakan JPG, PNG, atau PDF maksimal 8 MB.');e.target.value='';return}setError('');setFiles(a=>a.map((f,j)=>j===i?file:f))}}/>{files[i]?.name||'Belum ada berkas; dapat diserahkan saat tindak lanjut petugas.'}</label>}</div>)}{evidence.includes('Lainnya')&&field({key:'evidence_other',label:'Jenis bukti lainnya',required:true})}</fieldset>
+    <fieldset className="operations-group"><legend>Pernyataan Pelapor/Jemaah</legend><label className="complaint-check"><input required type="checkbox" checked={declaration} onChange={e=>setDeclaration(e.target.checked)}/>Saya menyatakan data dan keterangan di atas benar.</label><div className="form-grid">{field({key:'place',label:'Tempat',required:true})}{field({key:'signed_date',label:'Tanggal',type:'date',required:true})}{field({key:'signer',label:'Nama Pelapor/Jemaah yang menyatakan',required:true})}</div><p>Nama dan persetujuan ini dicatat sebagai pernyataan pada form daring.</p></fieldset>
+    <button className="btn primary" disabled={busy}>{busy?'Menyimpan…':'Kirim pengaduan'}</button>
+   </fieldset>
+  </form>:<section className="dash-panel"><h2>Pengaduan tersimpan</h2><p>Simpan nomor referensi dan gunakan nomor HP/WA yang sama untuk mengecek status.</p><div className="request-reference">{receipt.reference}</div><p>{busy?'Mengunggah bukti…':pending?'Ada bukti yang belum berhasil diunggah.':'Bukti yang dipilih telah tersimpan.'}</p>{pending&&<form onSubmit={send}><button className="btn primary" disabled={busy}>Coba unggah kembali</button></form>}<Link to="/" className="btn light">Kembali ke beranda</Link></section>}
+  <section className="dash-panel spaced-panel"><h2>Cek Status Pengaduan</h2><form onSubmit={track} className="form-grid"><label>Nomor referensi<input required value={lookup.reference} onChange={e=>setLookup(v=>({...v,reference:e.target.value}))}/></label><label>No. HP/WA saat mengirim<input required type="tel" value={lookup.phone} onChange={e=>setLookup(v=>({...v,phone:e.target.value}))}/></label><button className="btn light" disabled={busy}>Cek status</button></form>{tracked&&<div role="status"><p><b>{status(tracked.status)}</b></p><p className="complaint-text">{tracked.public_notes||'Pengaduan menunggu tindak lanjut petugas.'}</p></div>}</section>
+ </div></main>;
+}
+
+export function ComplaintList({base}:{base:string}){
+ const [rows,setRows]=useState<Complaint[]>([]),[page,setPage]=useState(1),[total,setTotal]=useState(0),[error,setError]=useState(''),[loading,setLoading]=useState(true);
+ useEffect(()=>{let active=true;setLoading(true);setError('');api<{complaints:Complaint[];total:number}>(root+'?page='+page).then(d=>{if(active){setRows(d.complaints);setTotal(d.total)}}).catch(e=>{if(active)setError(e.message)}).finally(()=>{if(active)setLoading(false)});return()=>{active=false}},[page]);
+ return <section className="dash-panel"><h2>Pengaduan Jemaah</h2><p>Form kronologi dan bukti dari layanan Permasalahan Umrah &amp; Haji Khusus.</p>{error?<p role="alert" className="form-error">{error}</p>:loading?<p>Memuat…</p>:<><div className="table-wrap-live"><table className="table-live"><thead><tr><th>Referensi</th><th>Pelapor</th><th>Travel</th><th>Status</th><th></th></tr></thead><tbody>{rows.map(c=><tr key={c.id}><td>{c.reference}</td><td>{c.reporter_name}</td><td>{c.travel_name}</td><td>{status(c.status)}</td><td><Link className="btn light sm" to={`${base}/pengaduan/${c.id}`}>Buka</Link></td></tr>)}</tbody></table></div>{!rows.length&&<p>Belum ada pengaduan.</p>}<div className="manifest-pagination"><button disabled={page===1} onClick={()=>setPage(p=>p-1)}>Sebelumnya</button><span>Halaman {page} · {total} pengaduan</span><button disabled={page*25>=total} onClick={()=>setPage(p=>p+1)}>Berikutnya</button></div></>}</section>;
+}
+export function ComplaintDetail({base}:{base:string}){
+ const {id}=useParams();const [c,setC]=useState<Complaint|null>(null),[files,setFiles]=useState<{id:string;file_name:string;slot:number}[]>([]),[error,setError]=useState(''),[busy,setBusy]=useState(false),[message,setMessage]=useState('');
+ useEffect(()=>{let active=true;setC(null);setError('');api<{complaint:Complaint;files:typeof files}>(root+'/'+id).then(d=>{if(active){setC(d.complaint);setFiles(d.files)}}).catch(e=>{if(active)setError(e.message)});return()=>{active=false}},[id]);
+ async function save(e:React.FormEvent){e.preventDefault();setBusy(true);setError('');setMessage('');try{await api(root+'/'+id,{method:'PATCH',body:{status:c!.status,public_notes:c!.public_notes}});setMessage('Tindak lanjut tersimpan.')}catch(e){setError((e as Error).message)}finally{setBusy(false)}}
+ async function view(fileId:string){setError('');try{const d=await api<{url:string}>(`${root}/${id}/files/${fileId}/url`);window.location.assign(d.url)}catch(e){setError((e as Error).message)}}
+ return <div className="managed-form"><Link to={`${base}/pengaduan`}>← Daftar pengaduan</Link>{error&&<p className="form-error" role="alert">{error}</p>}{!c?<p>Memuat pengaduan…</p>:<><h2>{c.reference}</h2>{sections.map(s=><section className="dash-panel spaced-panel" key={s.title}><h3>{s.title}</h3><dl className="manifest-details">{s.fields.map(f=><div key={f.key}><dt>{f.label}</dt><dd>{c.form_data[f.key]||'—'}</dd></div>)}</dl></section>)}<section className="dash-panel spaced-panel"><h3>D. Kronologi Kejadian</h3>{chronologyLabels.map((x,i)=><div key={x}><h4>{i+1}. {x} · {c.form_data.chronology[i]?.date||'Tanggal tidak diketahui'}</h4><p className="complaint-text">{c.form_data.chronology[i]?.description||'—'}</p></div>)}</section><section className="dash-panel spaced-panel"><h3>E. Kerugian dan Permohonan</h3><p>Total kerugian: Rp {c.form_data.loss||'—'} · Bukti pembayaran: {c.form_data.payment_proof}</p><p>{c.form_data.requests.join(', ')} {c.form_data.request_other}</p></section><section className="dash-panel spaced-panel"><h3>F. Bukti</h3><p>Ditandai tersedia: {c.form_data.evidence.join(', ')||'Tidak ada'} {c.form_data.evidence_other}</p>{files.map(f=><p key={f.id}><button className="btn light" onClick={()=>view(f.id)}>Buka {evidenceOptions[f.slot-1]} · {f.file_name}</button></p>)}{!files.length&&<p>Belum ada berkas yang diunggah.</p>}</section><section className="dash-panel spaced-panel"><h3>Pernyataan</h3><p>{c.form_data.place}, {c.form_data.signed_date} · {c.form_data.signer}</p><p>{c.form_data.declaration?'Pelapor menyatakan data dan keterangan benar.':'Pernyataan belum diberikan.'}</p></section><form className="dash-panel spaced-panel" onSubmit={save}><h3>Tindak lanjut</h3><label>Status<select value={c.status} onChange={e=>setC({...c,status:e.target.value})}>{['menunggu','diproses','selesai','dikembalikan'].map(s=><option key={s} value={s}>{status(s)}</option>)}</select></label><label>Catatan untuk pelapor<textarea rows={4} maxLength={4000} value={c.public_notes} onChange={e=>setC({...c,public_notes:e.target.value})}/></label><p>Catatan ini terlihat saat pelapor mengecek status.</p>{message&&<p role="status">{message}</p>}<button className="btn primary" disabled={busy}>{busy?'Menyimpan…':'Simpan tindak lanjut'}</button></form></>}</div>;
+}
