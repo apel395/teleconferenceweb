@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, Navigate, useParams } from 'react-router-dom';
 import { ArrowRight, CheckCircle2, FileText } from 'lucide-react';
 import { api } from '../lib/api';
+import ComplaintForm from './ComplaintPages';
 
 type ServiceSummary = {
   slug: string;
@@ -30,7 +31,7 @@ const noFormRedirect: Record<string,string> = {
 
 export default function PublicConsultationForm() {
   const { slug } = useParams();
-  if (slug && noFormRedirect[slug]) return <Navigate to={noFormRedirect[slug]} replace />;
+
   const matched = services.find((s) => s.slug === slug);
 
   const [name, setName] = useState('');
@@ -40,6 +41,9 @@ export default function PublicConsultationForm() {
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState<{ reference: string } | null>(null);
+
+  if (slug && noFormRedirect[slug]) return <Navigate to={noFormRedirect[slug]} replace />;
+  if (slug === 'permasalahan-umrah-haji-khusus') return <ComplaintForm />;
 
   if (!matched) {
     return <Navigate to="/layanan" replace />;
