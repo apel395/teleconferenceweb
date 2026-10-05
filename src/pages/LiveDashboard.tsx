@@ -10,6 +10,7 @@ import { useAuth } from '../hooks/useAuth';
 import { SupervisionForm, SupervisionList } from './SupervisionPages';
 import { OperationsDashboard, ReturnReportEditor } from './OperationsPages';
 import ManifestPage from './ManifestPage';
+import { ComplaintList, ComplaintDetail } from './ComplaintPages';
 import { AccountsPage, TravelPage } from './AccountPages';
 
 /* ---------- Types ---------- */
@@ -113,12 +114,12 @@ function useRole(base: string): 'pengguna' | 'konsultan' | 'admin' | 'pengawas' 
 
 export function DashboardShell({ base, children }: { base: string; children: React.ReactNode }) {
   const [open, setOpen] = useState(false);
-  const [sidebarHidden, setSidebarHidden] = useState(() => {
-    try { return localStorage.getItem('kemenhaj-sidebar-hidden') === 'true'; } catch { return false; }
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    try { return (localStorage.getItem('kemenhaj-sidebar-collapsed') ?? localStorage.getItem('kemenhaj-sidebar-hidden')) === 'true'; } catch { return false; }
   });
   useEffect(() => {
-    try { localStorage.setItem('kemenhaj-sidebar-hidden', String(sidebarHidden)); } catch { /* Storage can be disabled. */ }
-  }, [sidebarHidden]);
+    try { localStorage.setItem('kemenhaj-sidebar-collapsed', String(sidebarCollapsed)); } catch { /* Storage can be disabled. */ }
+  }, [sidebarCollapsed]);
   const navigate = useNavigate();
   const { user, logout: clearAuth } = useAuth();
   const role = useRole(base);
@@ -161,6 +162,8 @@ export function DashboardShell({ base, children }: { base: string; children: Rea
     nav.push({ to: `${base}/video`, label: 'Video Call', icon: <Video size={17} /> });
   }
 
+  if (isAdmin || isOperationsStaff) nav.push({ to: `${base}/pengaduan`, label: 'Pengaduan Jemaah', icon: <FileText size={17} /> });
+
   const roleLabel = isAdmin ? 'Administrator' : isOperationsStaff ? 'Staf' : isTravel ? 'Perusahaan Travel' : isCons ? 'Konsultan' : isSupervisor ? 'Pengawas' : 'Pengguna';
   const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 
@@ -170,7 +173,7 @@ export function DashboardShell({ base, children }: { base: string; children: Rea
   }
 
   return (
-    <div className={`dash-shell ${sidebarHidden ? 'sidebar-hidden' : ''}`}>
+    <div className={`dash-shell ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
       <aside id="dashboard-sidebar" className={`dash-sidebar ${open ? 'open' : ''}`}>
         <div className="dash-side-top">
           <Link to="/" className="dash-brand"><img className="brand-logo" src="/logo-kemenhaj.png" alt="Logo Kemenhaj Riau"/><span className="brand-copy"><b>KEMENHAJ&nbsp;Riau</b><small>Portal Riau</small></span></Link>
@@ -178,25 +181,25 @@ export function DashboardShell({ base, children }: { base: string; children: Rea
         </div>
         <nav className="dash-nav">
           {nav.map((n) => (
-            <NavLink key={n.to} to={n.to} end className={({ isActive }) => (isActive ? 'active' : '')} onClick={() => setOpen(false)}>
-              {n.icon}{n.label}
+            <NavLink key={n.to} to={n.to} title={n.label} aria-label={n.label} end className={({ isActive }) => (isActive ? 'active' : '')} onClick={() => setOpen(false)}>
+              {n.icon}<span className="sidebar-label">{n.label}</span>
             </NavLink>
           ))}
-          <Link to="/request-video-call" onClick={() => setOpen(false)}><Video size={17} /> Minta Video Call</Link>
-          <Link to="/" onClick={() => setOpen(false)}><FileText size={17} /> Situs publik</Link>
+          <Link to="/request-video-call" title="Minta Video Call" aria-label="Minta Video Call" onClick={() => setOpen(false)}><Video size={17} /><span className="sidebar-label">Minta Video Call</span></Link>
+          <Link to="/" title="Situs publik" aria-label="Situs publik" onClick={() => setOpen(false)}><FileText size={17} /><span className="sidebar-label">Situs publik</span></Link>
         </nav>
         <div className="dash-side-foot">
           <div className="dash-user">
             <span className="avatar">{initials(user?.name || '?')}</span>
             <div><b>{user?.name || 'Pengguna'}</b><span>{user?.email}</span></div>
           </div>
-          <button className="dash-logout" onClick={logout}><LogOut size={14} /> Keluar</button>
+          <button className="dash-logout" title="Keluar" aria-label="Keluar" onClick={logout}><LogOut size={14} /><span className="sidebar-label">Keluar</span></button>
         </div>
       </aside>
       {open && <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.4)', zIndex: 55 }} onClick={() => setOpen(false)} />}
       <div className="dash-main">
         <header className="dash-topbar">
-          <button className="sidebar-desktop-toggle" onClick={() => setSidebarHidden(hidden => !hidden)} aria-controls="dashboard-sidebar" aria-expanded={!sidebarHidden} aria-label={sidebarHidden ? 'Tampilkan sidebar' : 'Sembunyikan sidebar'} title={sidebarHidden ? 'Tampilkan sidebar' : 'Sembunyikan sidebar'}><Menu size={20} /></button>
+          <button className="sidebar-desktop-toggle" onClick={() => setSidebarCollapsed(hidden => !hidden)} aria-controls="dashboard-sidebar" aria-expanded={!sidebarCollapsed} aria-label={sidebarCollapsed ? 'Perluas sidebar' : 'Perkecil sidebar'} title={sidebarCollapsed ? 'Perluas sidebar' : 'Perkecil sidebar'}><Menu size={20} /></button>
           <button className="sidebar-mobile-toggle" onClick={() => setOpen(!open)} aria-controls="dashboard-sidebar" aria-expanded={open} aria-label={open ? 'Tutup menu' : 'Buka menu'}><Menu size={20} /></button>
           <div>
             <h1>{[...nav].sort((a,b)=>b.to.length-a.to.length).find(n=>location.pathname===n.to || (n.to!==base && location.pathname.startsWith(n.to+'/')))?.label || nav[0]?.label}</h1>
@@ -603,6 +606,7 @@ function Submissions({ base }: { base: string }) {
 
   return (
     <>
+      <p>Pengaduan dengan form kronologi tersedia di <Link to={`${base}/pengaduan`}>Pengaduan Jemaah</Link>.</p>
       <div className="dash-panel-head"><div className="dash-section-title">Pengajuan &amp; laporan masuk</div><button className="btn ghost2 sm" onClick={reload} disabled={loading}><RefreshCw size={14}/> Muat ulang</button></div>
       <div className="dash-panel" style={{ paddingBottom: 8 }}>
         {error && <div className="dash-msg" role="alert">Gagal memuat pengajuan: {error} <button className="btn ghost2 sm" onClick={reload}>Coba lagi</button></div>}
@@ -901,6 +905,8 @@ export function LiveDashboard({ base }: { base: string }) {
         <Route path="" element={<Overview base={base} />} />
         <Route path="pengajuan" element={<Submissions base={base} />} />
         <Route path="jemaah" element={<ManifestPage />} />
+        <Route path="pengaduan" element={<ComplaintList base={base} />} />
+        <Route path="pengaduan/:id" element={<ComplaintDetail base={base} />} />
         <Route path="laporan-kloter" element={<OperationsDashboard base={base} kind="returns" />} />
         <Route path="laporan-kloter/:id" element={<ReturnReportEditor base={base} />} />
         <Route path="izin-ppiu" element={<OperationsDashboard base={base} kind="ppiu" />} />
@@ -920,6 +926,8 @@ export function LiveDashboard({ base }: { base: string }) {
     <DashboardShell base={base}><Routes>
       <Route path="" element={<Navigate to={`${base}/laporan-kloter`} replace />} />
       <Route path="jemaah" element={<ManifestPage />} />
+        <Route path="pengaduan" element={<ComplaintList base={base} />} />
+        <Route path="pengaduan/:id" element={<ComplaintDetail base={base} />} />
         <Route path="laporan-kloter" element={<OperationsDashboard base={base} kind="returns" />} />
       <Route path="laporan-kloter/:id" element={<ReturnReportEditor base={base} />} />
       <Route path="izin-ppiu" element={<OperationsDashboard base={base} kind="ppiu" />} />
