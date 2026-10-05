@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { CheckCircle2, ClipboardCheck, Plus, RefreshCw, Save } from 'lucide-react';
-import { api, API_URL, getToken } from '../lib/api';
+import { api, API_URL, getToken, expireSession, sessionExpiresAt } from '../lib/api';
 
 type Supervision = {
   id: string; reference: string; airport: string | null; inspection_date: string;
@@ -66,8 +66,12 @@ export function SupervisionForm({base}:{base:string}) {
     try{
       const headers:Record<string,string>={'Content-Type':'application/octet-stream','x-file-type':file.type,'x-file-name':encodeURIComponent(file.name)};
       if(itemCode)headers['x-item-code']=itemCode;
-      const token=getToken();if(token)headers.Authorization='Bearer '+token;
+      const token=getToken();
+      if(!token)throw new Error('Silakan masuk kembali.');
+      if((sessionExpiresAt(token)??0)<=Date.now()){expireSession(token);throw new Error('Sesi Anda telah berakhir. Silakan masuk kembali.');}
+      headers.Authorization='Bearer '+token;
       const response=await fetch(API_URL+`/supervisions/${id}/attachments`,{method:'POST',headers,body:file});
+      if(response.status===401)expireSession(token);
       const data=await response.json();
       if(!response.ok)throw new Error(data.error||'Gagal mengunggah bukti');
       setAttachments(xs=>[...xs,data.attachment]);setMsg('Bukti tersimpan.');
