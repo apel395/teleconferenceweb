@@ -1,11 +1,13 @@
 import { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import type { ReactNode } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   api,
   getUser,
   setSession,
   clearSession,
   isAuthenticated,
+  watchSessionExpiration,
   type AuthSession,
   type User,
 } from '../lib/api';
@@ -25,6 +27,7 @@ const AuthContext = createContext<AuthContextValue>({
 });
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(() => getUser());
   const [isAuth, setIsAuth] = useState<boolean>(() => isAuthenticated());
 
@@ -45,9 +48,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    window.addEventListener('kemenhaj-session-expired', logout);
-    return () => window.removeEventListener('kemenhaj-session-expired', logout);
-  }, [logout]);
+    const forceLogout = () => {
+      logout();
+      navigate('/masuk?sesi=berakhir', { replace: true });
+    };
+    window.addEventListener('kemenhaj-session-expired', forceLogout);
+    const stop = watchSessionExpiration(() => {
+      setUser(isAuthenticated() ? getUser() : null);
+      setIsAuth(isAuthenticated());
+    }, forceLogout);
+    return () => {
+      stop();
+      window.removeEventListener('kemenhaj-session-expired', forceLogout);
+    };
+  }, [isAuth, logout, navigate]);
 
   return (
     <AuthContext.Provider value={{ user, isAuth, login, logout }}>
