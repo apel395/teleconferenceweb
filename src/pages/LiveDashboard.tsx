@@ -10,6 +10,7 @@ import { useAuth } from '../hooks/useAuth';
 import { SupervisionForm, SupervisionList } from './SupervisionPages';
 import { OperationsDashboard, ReturnReportEditor } from './OperationsPages';
 import ManifestPage from './ManifestPage';
+import { UmrahTravelList, UmrahTravelForm } from './UmrahTravelPages';
 import { ComplaintList, ComplaintDetail } from './ComplaintPages';
 import { AccountsPage, TravelPage } from './AccountPages';
 
@@ -163,6 +164,8 @@ export function DashboardShell({ base, children }: { base: string; children: Rea
   }
 
   if (isAdmin || isOperationsStaff) nav.push({ to: `${base}/pengaduan`, label: 'Pengaduan Jemaah', icon: <FileText size={17} /> });
+
+  if (isAdmin || isOperationsStaff || isSupervisor || isTravel) nav.push({ to: `${base}/laporan-umrah`, label: 'Laporan Travel Umrah', icon: <FileText size={17} /> });
 
   const roleLabel = isAdmin ? 'Administrator' : isOperationsStaff ? 'Staf' : isTravel ? 'Perusahaan Travel' : isCons ? 'Konsultan' : isSupervisor ? 'Pengawas' : 'Pengguna';
   const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
@@ -904,7 +907,7 @@ export function LiveDashboard({ base }: { base: string }) {
       <Routes>
         <Route path="" element={<Overview base={base} />} />
         <Route path="pengajuan" element={<Submissions base={base} />} />
-        <Route path="jemaah" element={<ManifestPage />} />
+        <Route path="jemaah" element={<ManifestPage />} /><Route path="laporan-umrah" element={<UmrahTravelList base={base} />} /><Route path="laporan-umrah/baru" element={<UmrahTravelForm key="new" base={base} />} /><Route path="laporan-umrah/:id" element={<UmrahTravelForm key="edit" base={base} />} />
         <Route path="pengaduan" element={<ComplaintList base={base} />} />
         <Route path="pengaduan/:id" element={<ComplaintDetail base={base} />} />
         <Route path="laporan-kloter" element={<OperationsDashboard base={base} kind="returns" />} />
@@ -925,7 +928,7 @@ export function LiveDashboard({ base }: { base: string }) {
   if (role === 'staff' && user.role === 'staff') return (
     <DashboardShell base={base}><Routes>
       <Route path="" element={<Navigate to={`${base}/laporan-kloter`} replace />} />
-      <Route path="jemaah" element={<ManifestPage />} />
+      <Route path="jemaah" element={<ManifestPage />} /><Route path="laporan-umrah" element={<UmrahTravelList base={base} />} /><Route path="laporan-umrah/baru" element={<UmrahTravelForm key="new" base={base} />} /><Route path="laporan-umrah/:id" element={<UmrahTravelForm key="edit" base={base} />} />
         <Route path="pengaduan" element={<ComplaintList base={base} />} />
         <Route path="pengaduan/:id" element={<ComplaintDetail base={base} />} />
         <Route path="laporan-kloter" element={<OperationsDashboard base={base} kind="returns" />} />
@@ -934,12 +937,12 @@ export function LiveDashboard({ base }: { base: string }) {
     </Routes></DashboardShell>
   );
   if (role === 'travel' && user.role === 'travel') return (
-    <DashboardShell base={base}><Routes><Route path="" element={<TravelPage />} /></Routes></DashboardShell>
+    <DashboardShell base={base}><Routes><Route path="laporan-umrah" element={<UmrahTravelList base={base} />} /><Route path="laporan-umrah/baru" element={<UmrahTravelForm key="new" base={base} />} /><Route path="laporan-umrah/:id" element={<UmrahTravelForm key="edit" base={base} />} /><Route path="" element={<TravelPage />} /></Routes></DashboardShell>
   );
   if (role === 'pengawas' && user.role === 'pengawas') return (
     <DashboardShell base={base}>
       <Routes>
-        <Route path="" element={<SupervisionList base={base} />} />
+        <Route path="laporan-umrah" element={<UmrahTravelList base={base} />} /><Route path="laporan-umrah/baru" element={<UmrahTravelForm key="new" base={base} />} /><Route path="laporan-umrah/:id" element={<UmrahTravelForm key="edit" base={base} />} /><Route path="" element={<SupervisionList base={base} />} />
         <Route path="pengawasan" element={<SupervisionList base={base} />} />
         <Route path="pengawasan/baru" element={<SupervisionForm base={base} />} />
         <Route path="pengawasan/:id" element={<SupervisionForm base={base} />} />

@@ -1,0 +1,15 @@
+[
+{"code":"DOC-01","section":"II. Dokumen Jemaah Umrah","indicator":"Paspor aktif/berlaku paling singkat 6 (enam) bulan dari tanggal keberangkatan.","evidence":"Cek paspor"},
+{"code":"DOC-02","section":"II. Dokumen Jemaah Umrah","indicator":"Memiliki Visa Umrah yang sah dan masih berlaku.","evidence":"Cek visa (link movva/fisik)"},
+{"code":"DOC-03","section":"II. Dokumen Jemaah Umrah","indicator":"Memiliki tiket pesawat pulang-pergi (PP) dengan tanggal dan jadwal pasti; jadwal sesuai perjanjian tertulis PPIU dengan jemaah.","evidence":"Foto dokumen tiket dan boarding pass"},
+{"code":"DOC-04","section":"II. Dokumen Jemaah Umrah","indicator":"Buku Kesehatan/Surat Keterangan Sehat dari Dokter.","evidence":"Cek buku kesehatan (warna kuning)"},
+{"code":"DOC-05","section":"II. Dokumen Jemaah Umrah","indicator":"Terdaftar pada Sistem Informasi Kementerian; laporan tiket PP dan nomor visa terverifikasi sebelum berangkat.","evidence":"Wawancara petugas"},
+{"code":"PRO-01","section":"III. Identitas, Pelindungan Asuransi, dan Penanganan Kesehatan","indicator":"Jemaah dan petugas PPIU menggunakan Kartu Tanda Pengenal yang dicetak melalui Sistem Informasi Kementerian.","evidence":"Foto/cek ID card Siskopatuh"},
+{"code":"PRO-02","section":"III. Identitas, Pelindungan Asuransi, dan Penanganan Kesehatan","indicator":"Perlengkapan jemaah mencantumkan identitas PPIU yang jelas, mudah dilihat, dan dibaca.","evidence":"Foto/cek perlengkapan jemaah"},
+{"code":"PRO-03","section":"III. Identitas, Pelindungan Asuransi, dan Penanganan Kesehatan","indicator":"Bukti kepesertaan asuransi aktif sejak sebelum/saat keberangkatan hingga kepulangan di Indonesia; asuransi jiwa, kecelakaan, dan kesehatan.","evidence":"Wawancara jemaah/petugas"},
+{"code":"PRO-04","section":"III. Identitas, Pelindungan Asuransi, dan Penanganan Kesehatan","indicator":"Pendampingan petugas PPIU di bandara keberangkatan untuk penanganan perjalanan dan pelindungan jemaah.","evidence":"Wawancara jemaah/petugas"},
+{"code":"PRO-05","section":"III. Identitas, Pelindungan Asuransi, dan Penanganan Kesehatan","indicator":"Tersedianya layanan kesehatan dasar dan obat-obatan sesuai ketentuan sebelum berangkat.","evidence":"Wawancara jemaah/petugas"},
+{"code":"BIM-01","section":"IV. Pengawasan Bimbingan","indicator":"Jemaah telah menerima bimbingan manasik (teori dan praktik) sekurang-kurangnya 1 (satu) kali pertemuan sebelum berangkat.","evidence":"Wawancara jemaah/petugas"},
+{"code":"BIM-02","section":"IV. Pengawasan Bimbingan","indicator":"Pelaksanaan bimbingan manasik dipimpin oleh pembimbing bersertifikat resmi Kementerian.","evidence":"Wawancara jemaah/petugas"},
+{"code":"BIM-03","section":"IV. Pengawasan Bimbingan","indicator":"Jemaah telah menerima sosialisasi/edukasi persiapan dan perjalanan Umrah dari PPIU.","evidence":"Wawancara jemaah/petugas"}
+]

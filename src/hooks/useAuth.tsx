@@ -12,11 +12,14 @@ import {
   type User,
 } from '../lib/api';
 
+export type TravelRegistrationInput = {email:string;password:string;name:string;company_name:string;nib:string;office_address:string};
+
 type AuthContextValue = {
   user: User | null;
   isAuth: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
+  registerTravel: (input: TravelRegistrationInput) => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextValue>({
@@ -24,6 +27,7 @@ const AuthContext = createContext<AuthContextValue>({
   isAuth: false,
   login: async () => {},
   logout: () => {},
+  registerTravel: async () => {},
 });
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -36,6 +40,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       method: 'POST',
       body: { email, password },
     });
+    setSession(session);
+    setUser(session.user);
+    setIsAuth(true);
+  }, []);
+
+  const registerTravel = useCallback(async (input: TravelRegistrationInput) => {
+    const session = await api<AuthSession>('/auth/register-travel', {method:'POST',body:input});
     setSession(session);
     setUser(session.user);
     setIsAuth(true);
@@ -64,7 +75,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [isAuth, logout, navigate]);
 
   return (
-    <AuthContext.Provider value={{ user, isAuth, login, logout }}>
+    <AuthContext.Provider value={{ user, isAuth, login, logout, registerTravel }}>
       {children}
     </AuthContext.Provider>
   );
