@@ -9,6 +9,6 @@ export function useFormDraft<T>(key:string, enabled:boolean, initial:()=>T,valid
    const ok=writeFormDraft(key,latest.current);setStorageAvailable(ok);return ok;
  },[key,enabled]);
  useEffect(()=>{persist()},[value,persist]);
- const clear=useCallback(()=>{active.current=false;removeFormDraft(key)},[key]);
+ const clear=useCallback(()=>{if(enabled){active.current=false;removeFormDraft(key)}},[key,enabled]);
  return {value,setValue,persist,clear,storageAvailable};
 }

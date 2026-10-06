@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import type { ReactNode } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import {
   api,
   getUser,
@@ -11,6 +11,8 @@ import {
   type AuthSession,
   type User,
 } from '../lib/api';
+
+import { formContinuation } from '../lib/formDraft';
 
 export type TravelRegistrationInput = {email:string;password:string;name:string;company_name:string;nib:string;office_address:string};
 
@@ -32,6 +34,7 @@ const AuthContext = createContext<AuthContextValue>({
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
+  const {pathname}=useLocation();
   const [user, setUser] = useState<User | null>(() => getUser());
   const [isAuth, setIsAuth] = useState<boolean>(() => isAuthenticated());
 
@@ -61,6 +64,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const forceLogout = () => {
       logout();
+      // Public form entry remains available after the session is cleared.
+      if(formContinuation(pathname,'admin'))return;
       navigate('/masuk?sesi=berakhir', { replace: true });
     };
     window.addEventListener('kemenhaj-session-expired', forceLogout);
@@ -72,7 +77,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       stop();
       window.removeEventListener('kemenhaj-session-expired', forceLogout);
     };
-  }, [isAuth, logout, navigate]);
+  }, [isAuth, logout, navigate, pathname]);
 
   return (
     <AuthContext.Provider value={{ user, isAuth, login, logout, registerTravel }}>

@@ -20,7 +20,7 @@ const destinations:Record<string,readonly string[]>={
  '/layanan/pemulangan-haji-reguler/pengajuan':['admin','staff'],
 };
 export function formContinuation(path:string|null,role:string|undefined):string|null {
- return path&&role&&destinations[path]?.includes(role)?path:null;
+ return path&&role&&Object.hasOwn(destinations,path)&&destinations[path].includes(role)?path:null;
 }
 export function loginForForm(path:string){return '/masuk?lanjut='+encodeURIComponent(path)}
 export function registrationForForm(path:string){return '/daftar-travel?lanjut='+encodeURIComponent(path)}
