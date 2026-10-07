@@ -30,9 +30,9 @@ export function ActionFeedback({error,message}:{error:string;message:string}) {
  </aside>;
 }
 
-function EvidenceUpload({indicator,disabled,onFile}:{indicator:string;disabled:boolean;onFile:(file:File)=>void}) {
+export function EvidenceUpload({indicator,disabled,onFile,label='Unggah bukti (JPG/PNG/PDF, maksimal 8 MB)',accept='image/jpeg,image/png,application/pdf'}:{indicator:string;disabled:boolean;onFile:(file:File)=>void;label?:string;accept?:string}) {
  const input=useRef<HTMLInputElement>(null);
- return <div><p>Unggah bukti (JPG/PNG/PDF, maksimal 8 MB)</p><button type="button" className="btn light" disabled={disabled} onClick={()=>input.current?.click()} style={{display:'inline-flex',minHeight:48,fontSize:16}}>Pilih berkas</button><input ref={input} type="file" aria-label={`Unggah bukti ${indicator}`} hidden style={{display:'none'}} accept="image/jpeg,image/png,application/pdf" disabled={disabled} onChange={e=>{const file=e.target.files?.[0];if(file)onFile(file);e.target.value=''}}/></div>;
+ return <div><p>{label}</p><button type="button" className="btn light" disabled={disabled} onClick={()=>input.current?.click()} style={{display:'inline-flex',minHeight:48,fontSize:16}}>Pilih berkas</button><input ref={input} type="file" aria-label={`Unggah bukti ${indicator}`} hidden style={{display:'none'}} accept={accept} disabled={disabled} onChange={e=>{const file=e.target.files?.[0];if(file)onFile(file);e.target.value=''}}/></div>;
 }
 
 export function UmrahTravelList({base}:{base:string}){
