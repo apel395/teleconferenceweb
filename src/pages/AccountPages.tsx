@@ -31,6 +31,14 @@ function RoleEditor({account,companies,onSave,disabled}:{account:Account;compani
   </form>;
 }
 
+
+function PasswordForm({account}:{account?:Account}) {
+ const [password,setPassword]=useState(''),[busy,setBusy]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState('');
+ async function submit(e:React.FormEvent){e.preventDefault();setBusy(true);setError('');setNotice('');try{const d=await api<{message:string}>(account?`/users/${account.id}/password`:'/users/me/password',{method:'PATCH',body:{password}});setPassword('');setNotice(d.message)}catch(e){setError(message(e,'Gagal mengubah kata sandi.'))}finally{setBusy(false)}}
+ return <form className="managed-form" onSubmit={submit}><fieldset disabled={busy}><label>{account?'Kata sandi pengganti':'Kata sandi baru'}<input required type="password" minLength={8} maxLength={128} autoComplete="new-password" value={password} onChange={e=>setPassword(e.target.value)}/><small>Minimal 8 karakter. Langsung tersimpan tanpa konfirmasi email.</small></label>{error&&<p className="form-error" role="alert">{error}</p>}{notice&&<p className="form-notice" role="status">{notice}</p>}<button type="submit" className="btn primary">{busy?'Menyimpan…':account?'Reset kata sandi':'Simpan kata sandi'}</button></fieldset></form>;
+}
+export function MyPasswordPage(){return <div className="managed-form"><h1>Kata Sandi Saya</h1><PasswordForm/></div>;}
+
 export function AccountsPage() {
   const {user} = useAuth();
   const [companies,setCompanies] = useState<Company[]>([]);
@@ -85,7 +93,7 @@ export function AccountsPage() {
       <section className="dash-panel"><h2>Buat akun</h2><form className="managed-form" onSubmit={addAccount}><fieldset disabled={busy!==null || loading}>
         <div className="form-grid"><label>Nama lengkap<input required value={account.name} placeholder="Contoh: Staff Test" onChange={e=>setAccount({...account,name:e.target.value})}/></label>
         <label>Email<input required type="email" autoComplete="off" value={account.email} onChange={e=>setAccount({...account,email:e.target.value})}/></label></div>
-        <label>Sandi awal<input required minLength={12} type="password" autoComplete="new-password" value={account.password} onChange={e=>setAccount({...account,password:e.target.value})}/><small>Minimal 12 karakter.</small></label>
+        <label>Sandi awal<input required minLength={8} type="password" autoComplete="new-password" value={account.password} onChange={e=>setAccount({...account,password:e.target.value})}/><small>Minimal 8 karakter.</small></label>
         <label>Peran<select value={account.role} onChange={e=>setAccount({...account,role:e.target.value,company_id:''})}>{roles.map(r=><option key={r.value} value={r.value}>{r.label}</option>)}</select><small>{roles.find(r=>r.value===account.role)?.description}</small></label>
         {account.role==='travel' && <label>Perusahaan<select required value={account.company_id} onChange={e=>setAccount({...account,company_id:e.target.value})}><option value="">Pilih perusahaan</option>{companies.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select>{!companies.length && <small>Tambahkan perusahaan terlebih dahulu.</small>}</label>}
         <button className="btn primary">{busy==='account'?'Membuat…':'Buat akun'}</button>
@@ -95,7 +103,7 @@ export function AccountsPage() {
       <label className="account-search">Cari akun<input type="search" value={query} onChange={e=>setQuery(e.target.value)} placeholder="Nama, email, atau peran"/></label>
       {loading ? <p role="status">Memuat akun…</p> : error ? <button className="btn light" onClick={()=>{setError('');void load()}}>Muat ulang data</button> : <>
         {!filtered.length && <p>Tidak ada akun yang sesuai.</p>}
-        {filtered.map(u=><article className="account-row" key={u.id}><div className="account-identity"><strong>{u.name}{u.id===user?.id?' (Anda)':''}</strong><span>{u.email}</span><span className="role-badge">{roleLabel(u.role)}</span>{u.company_id && <small>{companies.find(c=>c.id===u.company_id)?.name || 'Perusahaan tidak ditemukan'}</small>}</div><RoleEditor account={u} companies={companies} disabled={u.id===user?.id} onSave={(role,c)=>change(u,role,c)}/></article>)}
+        {filtered.map(u=><article className="account-row" key={u.id}><div className="account-identity"><strong>{u.name}{u.id===user?.id?' (Anda)':''}</strong><span>{u.email}</span><span className="role-badge">{roleLabel(u.role)}</span>{u.company_id && <small>{companies.find(c=>c.id===u.company_id)?.name || 'Perusahaan tidak ditemukan'}</small>}</div><div><RoleEditor account={u} companies={companies} disabled={u.id===user?.id} onSave={(role,c)=>change(u,role,c)}/><details style={{marginTop:16}}><summary style={{cursor:'pointer'}}>Reset kata sandi</summary><PasswordForm account={u}/></details></div></article>)}
       </>}
       <details className="role-guide"><summary>Rincian kewenangan peran</summary>{roles.map(r=><p key={r.value}><strong>{r.label}:</strong> {r.description}</p>)}</details>
     </section>
