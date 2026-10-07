@@ -246,7 +246,16 @@ td b{font:700 11px 'Manrope'}
 }
 @media(max-width:700px){
   .header-inner{padding:0 14px}
-  .header-actions{display:none}
+  .header-inner{gap:8px}
+  .header-actions{display:flex;margin-left:auto}
+  .header-login{display:none}
+  .header-register{min-height:44px;padding:10px 9px;font-size:10px;white-space:nowrap}
+  .site-header .brand{min-width:0;gap:8px}
+  .site-header .brand-logo{width:36px;height:36px}
+  .site-header .brand-copy b{font-size:12px}
+  .site-header .brand-copy small{display:none}
+  .mobile-menu{margin-left:0;flex:0 0 39px}
+  .login-card{padding:24px 20px}
   .hero{padding:50px 18px}
   .hero h1{font-size:42px}
   .hero-trust{display:none}
@@ -270,3 +279,9 @@ td b{font:700 11px 'Manrope'}
   .footer-grid>div:last-child{grid-column:auto}
   .footer-bottom{flex-direction:column;gap:5px}
 }
+
+.header-register{border:1px solid #ac853b;box-shadow:0 4px 12px rgba(123,87,29,.16)}
+.signup-callout{margin-top:22px;padding:18px;border:1px solid #c7a35a;border-radius:12px;background:var(--gold-soft)}
+.signup-callout h2{margin:0;font-size:16px;color:var(--brown)}
+.signup-callout p{font-size:13px;line-height:1.5;margin:8px 0 14px;color:#65503b}
+.signup-callout .btn{min-height:46px;font-size:14px;border:1px solid #ac853b}
