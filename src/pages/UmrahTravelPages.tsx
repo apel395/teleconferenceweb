@@ -19,7 +19,7 @@ const status=(s:string)=>({DRAFT:'Draft',SUBMITTED:'Terkirim',FINAL:'Final'} as 
 function roleBase(role?:string){return role==='admin'?'/admin':role==='staff'?'/staff':role==='pengawas'?'/pengawas':'/travel'}
 const decisions=(kind:Kind)=>kind==='DEPARTURE'?[['DIIZINKAN_BERANGKAT','DIIZINKAN BERANGKAT (seluruh persyaratan terpenuhi)'],['CATATAN_PERBAIKAN','CATATAN / PERBAIKAN (lengkapi dokumen minor)'],['PENUNDAAN_PENINDAKAN','PENUNDAAN / PENINDAKAN']]:[['PEMULANGAN_SELESAI','PEMULANGAN SELESAI'],['CATATAN_PERBAIKAN','CATATAN / PERBAIKAN'],['TINDAK_LANJUT','TINDAK LANJUT / PENINDAKAN']];
 
-function ActionFeedback({error,message}:{error:string;message:string}) {
+export function ActionFeedback({error,message}:{error:string;message:string}) {
  const [dismissed,setDismissed]=useState(false);
  useEffect(()=>setDismissed(false),[error,message]);
  const notice=error||message;
