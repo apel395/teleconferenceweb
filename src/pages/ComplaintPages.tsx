@@ -1,3 +1,4 @@
+import { ActionFeedback } from './UmrahTravelPages';
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { api, API_URL } from '../lib/api';
@@ -44,7 +45,7 @@ export default function ComplaintForm(){
  }
  async function track(e:React.FormEvent){e.preventDefault();setBusy(true);setError('');setTracked(null);try{const d=await api<{complaint:{status:string;public_notes:string}}>(root+'/track',{method:'POST',body:lookup});setTracked(d.complaint)}catch(e){setError((e as Error).message)}finally{setBusy(false)}}
  const pending=files.some((file,i)=>file&&!uploaded.includes(i));
- return <main className="section complaint-page"><div className="container managed-form">
+ return <main className="section complaint-page"><div className="container managed-form"><ActionFeedback error={error} message={receipt?`Pengaduan tersimpan. Nomor referensi: ${receipt.reference}.`:tracked?`Status pengaduan: ${status(tracked.status)}.`:''} />
   <Link to="/layanan/permasalahan-umrah-haji-khusus">← Kembali ke layanan</Link>
   <h1>Form Kronologi Pengaduan Korban/Jemaah Haji Khusus dan Umrah</h1>
   <p>Kantor Wilayah Kemenhaj Provinsi Riau. Isi sesuai kejadian. Kolom bertanda * wajib diisi; jika tanggal atau informasi tidak diketahui, biarkan kosong dan jelaskan pada uraian.</p>
