@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, Navigate, NavLink, Route, Routes, useNavigate, useParams, useLocation } from 'react-router-dom';
+import { Link, Navigate, NavLink, Route, Routes, useNavigate, useParams, useLocation, useSearchParams } from 'react-router-dom';
 import {
   CalendarDays, CalendarPlus, CheckCircle2, ClipboardCheck, ClipboardList, FileText, LayoutDashboard,
   LogOut, Menu, MessageSquare, Phone, RefreshCw, Users, Video, X
@@ -84,8 +84,7 @@ function initials(n: string) {
   return n.split(/\s+/).slice(0, 2).map((x) => x[0] || '').join('').toUpperCase() || '?';
 }
 
-// Pelaporan services are processed as documents (no video call). Konsultasi
-// services (perizinan & travel, dst.) use scheduled video meetings.
+// Reporting and licensing are document workflows; consultation uses scheduled meetings.
 const PELAPORAN_TOPICS = new Set([
   'Pelaporan Travel Umrah',
   'Pelaporan Jemaah Haji Khusus',
@@ -95,6 +94,8 @@ const PELAPORAN_TOPICS = new Set([
   'Permasalahan Umrah & Haji Khusus',
   'Pelaporan Manasik Kabupaten/Kota',
   'Pengajuan Perizinan PPIU dan KBIHU',
+  'Pengajuan Perizinan PPIU',
+  'Pengajuan Perizinan KBIHU',
   'Pelaporan Izin Cabang PPIU',
   'List Travel Umrah',
   'List Travel Umrah (termasuk travel bermasalah)',
@@ -132,42 +133,19 @@ export function DashboardShell({ base, children }: { base: string; children: Rea
   const isTravel = role === 'travel';
 
   const nav: { to: string; label: string; icon: React.ReactNode }[] = [];
-  if (isAdmin) {
-    nav.push({ to: `${base}`, label: 'Ringkasan', icon: <LayoutDashboard size={17} /> });
-    nav.push({ to: `${base}/pengajuan`, label: 'Pengajuan & Laporan', icon: <ClipboardList size={17} /> });
-    nav.push({ to: `${base}/jemaah`, label: 'Data Jemaah', icon: <Users size={17} /> });
-    nav.push({ to: `${base}/laporan-kloter`, label: 'Kepulangan Kloter', icon: <FileText size={17} /> });
-    nav.push({ to: `${base}/izin-ppiu`, label: 'Izin PPIU', icon: <ClipboardCheck size={17} /> });
-    nav.push({ to: `${base}/akun`, label: 'Akun & Peran', icon: <Users size={17} /> });
-    nav.push({ to: `${base}/pengawasan`, label: 'Pengawasan', icon: <ClipboardCheck size={17} /> });
-    nav.push({ to: `${base}/konsultasi`, label: 'Konsultasi', icon: <MessageSquare size={17} /> });
-    nav.push({ to: `${base}/penjadwalan`, label: 'Permintaan Video Call', icon: <CalendarDays size={17} /> });
-    nav.push({ to: `${base}/video`, label: 'Video Call', icon: <Video size={17} /> });
-  } else if (isOperationsStaff) {
-    nav.push({ to: `${base}/jemaah`, label: 'Data Jemaah', icon: <Users size={17} /> });
-    nav.push({ to: `${base}/laporan-kloter`, label: 'Kepulangan Kloter', icon: <FileText size={17} /> });
-    nav.push({ to: `${base}/izin-ppiu`, label: 'Izin PPIU', icon: <ClipboardCheck size={17} /> });
-  } else if (isTravel) {
-    nav.push({ to: `${base}`, label: 'Pengajuan perusahaan', icon: <ClipboardList size={17} /> });
-  } else if (isCons) {
-    nav.push({ to: `${base}`, label: 'Ringkasan', icon: <LayoutDashboard size={17} /> });
-    nav.push({ to: `${base}/penjadwalan`, label: 'Penjadwalan', icon: <CalendarDays size={17} /> });
-    nav.push({ to: `${base}/konsultasi`, label: 'Konsultasi', icon: <MessageSquare size={17} /> });
-    nav.push({ to: `${base}/video`, label: 'Video Call', icon: <Video size={17} /> });
-  } else if (isSupervisor) {
-    nav.push({ to: `${base}`, label: 'Ringkasan', icon: <LayoutDashboard size={17} /> });
-    nav.push({ to: `${base}/pengawasan`, label: 'Pengawasan', icon: <ClipboardCheck size={17} /> });
-  } else {
-    nav.push({ to: `${base}`, label: 'Ringkasan', icon: <LayoutDashboard size={17} /> });
-    nav.push({ to: `${base}/konsultasi`, label: 'Konsultasi Saya', icon: <MessageSquare size={17} /> });
-    nav.push({ to: `${base}/video`, label: 'Video Call', icon: <Video size={17} /> });
-  }
-
-  if (isAdmin || isOperationsStaff) nav.push({ to: `${base}/pengaduan`, label: 'Pengaduan Jemaah', icon: <FileText size={17} /> });
-
-  if (isAdmin || isOperationsStaff || isSupervisor || isTravel) nav.push({ to: `${base}/laporan-umrah`, label: 'Laporan Travel Umrah', icon: <FileText size={17} /> });
-
-  nav.push({to:`${base}/kata-sandi`,label:'Kata Sandi Saya',icon:<Users size={17}/>});
+  const add=(path:string,label:string,icon:React.ReactNode)=>nav.push({to:path?`${base}/${path}`:base,label,icon});
+  if(isAdmin||isCons||isSupervisor||(!isTravel&&!isOperationsStaff))add('','Ringkasan',<LayoutDashboard size={17}/>);
+  if(isAdmin||isOperationsStaff)add('perizinan','Pengajuan Perizinan',<ClipboardList size={17}/>);
+  if(isTravel)add('','Pengajuan Perizinan',<ClipboardList size={17}/>);
+  if(isAdmin||isOperationsStaff||isTravel||isSupervisor)add('pelaporan','Pelaporan',<FileText size={17}/>);
+  if(isAdmin||isOperationsStaff)add('pengaduan','Pengaduan',<MessageSquare size={17}/>);
+  if(isAdmin||isSupervisor)add('pengawasan','Pengawasan',<ClipboardCheck size={17}/>);
+  if(isAdmin||isOperationsStaff)add('jemaah','Data Jemaah',<Users size={17}/>);
+  if(isAdmin||isCons||(!isTravel&&!isOperationsStaff&&!isSupervisor))add('layanan-konsultasi','Konsultasi / Video Call',<Video size={17}/>);
+  if(isAdmin)add('akun','Akun & Peran',<Users size={17}/>);
+  add('kata-sandi','Kata Sandi Saya',<Users size={17}/>);
+  const menuPath=location.pathname.replace(`${base}/laporan-umrah`,`${base}/pelaporan`).replace(`${base}/laporan-kloter`,`${base}/pelaporan`).replace(`${base}/izin-ppiu`,`${base}/perizinan`).replace(`${base}/pengajuan`,`${base}/perizinan`).replace(new RegExp(`^${base}/(?:konsultasi|penjadwalan|video|meeting)(?=/|$)`),`${base}/layanan-konsultasi`);
+  const menuActive=(path:string)=>menuPath===path||(path!==base&&menuPath.startsWith(path+'/'));
   const roleLabel = isAdmin ? 'Administrator' : isOperationsStaff ? 'Staf' : isTravel ? 'Perusahaan Travel' : isCons ? 'Konsultan' : isSupervisor ? 'Pengawas' : 'Pengguna';
   const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 
@@ -185,11 +163,11 @@ export function DashboardShell({ base, children }: { base: string; children: Rea
         </div>
         <nav className="dash-nav">
           {nav.map((n) => (
-            <NavLink key={n.to} to={n.to} title={n.label} aria-label={n.label} end className={({ isActive }) => (isActive ? 'active' : '')} onClick={() => setOpen(false)}>
+            <NavLink key={n.to} to={n.to} title={n.label} aria-label={n.label} end className={() => (menuActive(n.to) ? 'active' : '')} onClick={() => setOpen(false)}>
               {n.icon}<span className="sidebar-label">{n.label}</span>
             </NavLink>
           ))}
-          <Link to="/request-video-call" title="Minta Video Call" aria-label="Minta Video Call" onClick={() => setOpen(false)}><Video size={17} /><span className="sidebar-label">Minta Video Call</span></Link>
+          {(isTravel||isOperationsStaff||isSupervisor)&&<Link to="/request-video-call" title="Konsultasi / Video Call" aria-label="Konsultasi / Video Call" onClick={() => setOpen(false)}><Video size={17} /><span className="sidebar-label">Konsultasi / Video Call</span></Link>}
           <Link to="/" title="Situs publik" aria-label="Situs publik" onClick={() => setOpen(false)}><FileText size={17} /><span className="sidebar-label">Situs publik</span></Link>
         </nav>
         <div className="dash-side-foot">
@@ -206,7 +184,7 @@ export function DashboardShell({ base, children }: { base: string; children: Rea
           <button className="sidebar-desktop-toggle" onClick={() => setSidebarCollapsed(hidden => !hidden)} aria-controls="dashboard-sidebar" aria-expanded={!sidebarCollapsed} aria-label={sidebarCollapsed ? 'Perluas sidebar' : 'Perkecil sidebar'} title={sidebarCollapsed ? 'Perluas sidebar' : 'Perkecil sidebar'}><Menu size={20} /></button>
           <button className="sidebar-mobile-toggle" onClick={() => setOpen(!open)} aria-controls="dashboard-sidebar" aria-expanded={open} aria-label={open ? 'Tutup menu' : 'Buka menu'}><Menu size={20} /></button>
           <div>
-            <h1>{[...nav].sort((a,b)=>b.to.length-a.to.length).find(n=>location.pathname===n.to || (n.to!==base && location.pathname.startsWith(n.to+'/')))?.label || nav[0]?.label}</h1>
+            <h1>{[...nav].sort((a,b)=>b.to.length-a.to.length).find(n=>menuActive(n.to))?.label || nav[0]?.label}</h1>
             <p>{today}</p>
           </div>
           <div className="dash-top-actions">
@@ -580,11 +558,12 @@ function ConsultationList({ base }: { base: string }) {
 }
 
 /* ---------- Submissions (admin) ---------- */
-function Submissions({ base }: { base: string }) {
+function Submissions({ base,category='all' }: { base: string;category?:'all'|'reports'|'permits'|'manasik' }) {
   const { list, loading, error, reload } = useConsultations();
   const [q, setQ] = useState('');
   const filtered = list
     .filter((c) => isPelaporan(c))
+    .filter(c=>category==='all'||(category==='permits'?/izin/i.test(c.topic):category==='manasik'?/manasik/i.test(c.topic):!/izin|manasik/i.test(c.topic)))
     .filter((c) => `${c.topic} ${c.reference || ''} ${nameOf(c)} ${c.guest_email || ''} ${c.guest_phone || ''}`.toLowerCase().includes(q.toLowerCase()));
   const public_ = filtered.filter((c) => !c.user_id);
   const registered = filtered.filter((c) => c.user_id);
@@ -611,25 +590,40 @@ function Submissions({ base }: { base: string }) {
   return (
     <>
       <p>Pengaduan dengan form kronologi tersedia di <Link to={`${base}/pengaduan`}>Pengaduan Jemaah</Link>.</p>
-      <div className="dash-panel-head"><div className="dash-section-title">Pengajuan &amp; laporan masuk</div><button className="btn ghost2 sm" onClick={reload} disabled={loading}><RefreshCw size={14}/> Muat ulang</button></div>
+      <div className="dash-panel-head"><div className="dash-section-title">{category==='permits'?'Pengajuan perizinan masuk':category==='manasik'?'Laporan manasik masuk':category==='reports'?'Laporan lainnya':'Pengajuan dan laporan terdahulu'}</div><button className="btn ghost2 sm" onClick={reload} disabled={loading}><RefreshCw size={14}/> Muat ulang</button></div>
       <div className="dash-panel" style={{ paddingBottom: 8 }}>
         {error && <div className="dash-msg" role="alert">Gagal memuat pengajuan: {error} <button className="btn ghost2 sm" onClick={reload}>Coba lagi</button></div>}
         <div className="search-box" style={{ width: '100%', maxWidth: 'none', marginBottom: 16 }}>
-          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Cari pengajuan, ref, pemohon, kontak…" />
+          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Cari referensi, layanan, pemohon, kontak…" />
         </div>
         {loading ? (
           <div className="empty-live"><b>Memuat…</b></div>
         ) : (
           <>
-            <div className="dash-panel-head"><h3>Pengajuan publik (tanpa akun)</h3><span className="count">{public_.length}</span></div>
-            {public_.length === 0 ? <div className="empty-live"><span>Belum ada pengajuan publik.</span></div> : render(public_)}
-            <div className="dash-panel-head" style={{ marginTop: 26 }}><h3>Pengajuan terdaftar</h3><span className="count">{registered.length}</span></div>
-            {registered.length === 0 ? <div className="empty-live"><span>Belum ada pengajuan terdaftar.</span></div> : render(registered)}
+            <div className="dash-panel-head"><h3>{category==='reports'||category==='manasik'?'Laporan publik (tanpa akun)':'Pengajuan publik (tanpa akun)'}</h3><span className="count">{public_.length}</span></div>
+            {public_.length === 0 ? <div className="empty-live"><span>{category==='reports'||category==='manasik'?'Belum ada laporan publik.':'Belum ada pengajuan publik.'}</span></div> : render(public_)}
+            <div className="dash-panel-head" style={{ marginTop: 26 }}><h3>{category==='reports'||category==='manasik'?'Laporan terdaftar':'Pengajuan terdaftar'}</h3><span className="count">{registered.length}</span></div>
+            {registered.length === 0 ? <div className="empty-live"><span>{category==='reports'||category==='manasik'?'Belum ada laporan terdaftar.':'Belum ada pengajuan terdaftar.'}</span></div> : render(registered)}
           </>
         )}
       </div>
     </>
   );
+}
+
+function ReportingHub({base}:{base:string}) {
+ const {user}=useAuth();const [params,setParams]=useSearchParams();const admin=user?.role==='admin',staff=admin||user?.role==='staff';
+ const tabs=[['umrah','Keberangkatan / Pemulangan Umrah'],...(staff?[['kloter','Kepulangan Kloter']]:[]),...(admin?[['manasik','Manasik'],['lainnya','Laporan lainnya']]:[])];
+ const selected=tabs.some(([id])=>id===params.get('jenis'))?params.get('jenis')!:'umrah';
+ return <><h1>Pelaporan</h1><div className="form-grid" style={{marginBottom:20}}>{tabs.map(([id,label])=><button type="button" key={id} className={`btn ${selected===id?'primary':'light'}`} aria-pressed={selected===id} onClick={()=>setParams({jenis:id})}>{label}</button>)}</div>{selected==='umrah'?<UmrahTravelList base={base}/>:selected==='kloter'?<OperationsDashboard base={base} kind="returns"/>:<Submissions key={selected} base={base} category={selected==='manasik'?'manasik':'reports'}/>}</>;
+}
+function LicensingHub({base}:{base:string}) {
+ const {user}=useAuth();const [params,setParams]=useSearchParams();const other=user?.role==='admin'&&params.get('jenis')==='lainnya';
+ return <><h1>Pengajuan Perizinan</h1>{user?.role==='admin'&&<div className="form-grid" style={{marginBottom:20}}><button type="button" className={`btn ${!other?'primary':'light'}`} onClick={()=>setParams({jenis:'ppiu'})}>Izin PPIU</button><button type="button" className={`btn ${other?'primary':'light'}`} onClick={()=>setParams({jenis:'lainnya'})}>KBIHU / Cabang / Pengajuan lainnya</button></div>}{other?<Submissions base={base} category="permits"/>:<OperationsDashboard base={base} kind="ppiu"/>}</>;
+}
+function ConsultationHub({base}:{base:string}) {
+ const {user}=useAuth();const [params,setParams]=useSearchParams();const canSchedule=user?.role==='admin'||user?.role==='konsultan';const tabs=[['konsultasi','Konsultasi'],...(canSchedule?[['permintaan','Permintaan Video Call']]:[]),['video','Video Call']];const selected=tabs.some(([id])=>id===params.get('jenis'))?params.get('jenis')!:'konsultasi';
+ return <><h1>Konsultasi / Video Call</h1>{!canSchedule&&<p><Link className="btn primary" to="/request-video-call">Minta Video Call</Link></p>}<div className="form-grid" style={{marginBottom:20}}>{tabs.map(([id,label])=><button type="button" key={id} className={`btn ${selected===id?'primary':'light'}`} onClick={()=>setParams({jenis:id})}>{label}</button>)}</div>{selected==='konsultasi'?<ConsultationList base={base}/>:selected==='permintaan'?<SchedulingView base={base}/>:<MeetingList base={base}/>}</>;
 }
 
 /* ---------- Consultation detail ---------- */
@@ -907,19 +901,19 @@ export function LiveDashboard({ base }: { base: string }) {
     <DashboardShell base={base}>
       <Routes><Route path="kata-sandi" element={<MyPasswordPage />} />
         <Route path="" element={<Overview base={base} />} />
-        <Route path="pengajuan" element={<Submissions base={base} />} />
-        <Route path="jemaah" element={<ManifestPage />} /><Route path="laporan-umrah" element={<UmrahTravelList base={base} />} /><Route path="laporan-umrah/baru" element={<UmrahTravelForm key="new" base={base} />} /><Route path="laporan-umrah/:id" element={<UmrahTravelForm key="edit" base={base} />} />
+        <Route path="pengajuan" element={<Navigate to={`${base}/perizinan`} replace/>} />
+        <Route path="jemaah" element={<ManifestPage />} /><Route path="pelaporan" element={<ReportingHub base={base}/>} /><Route path="laporan-umrah" element={<UmrahTravelList base={base} />} /><Route path="laporan-umrah/baru" element={<UmrahTravelForm key="new" base={base} />} /><Route path="laporan-umrah/:id" element={<UmrahTravelForm key="edit" base={base} />} />
         <Route path="pengaduan" element={<ComplaintList base={base} />} />
         <Route path="pengaduan/:id" element={<ComplaintDetail base={base} />} />
         <Route path="laporan-kloter" element={<OperationsDashboard base={base} kind="returns" />} />
         <Route path="laporan-kloter/:id" element={<ReturnReportEditor base={base} />} />
-        <Route path="izin-ppiu" element={<OperationsDashboard base={base} kind="ppiu" />} />
+        <Route path="perizinan" element={<LicensingHub base={base}/>} /><Route path="izin-ppiu" element={<OperationsDashboard base={base} kind="ppiu" />} />
         <Route path="penjadwalan" element={<SchedulingView base={base} />} />
         <Route path="akun" element={<AccountsPage />} />
         <Route path="pengawasan" element={<SupervisionList base={base} />} />
         <Route path="pengawasan/baru" element={<SupervisionForm base={base} />} />
         <Route path="pengawasan/:id" element={<SupervisionForm base={base} />} />
-        <Route path="konsultasi" element={<ConsultationList base={base} />} />
+        <Route path="layanan-konsultasi" element={<ConsultationHub base={base}/>} /><Route path="konsultasi" element={<ConsultationList base={base} />} />
         <Route path="konsultasi/:id" element={<ConsultationDetail base={base} />} />
         <Route path="meeting/:id" element={<MeetingView base={base} />} />
         <Route path="video" element={<MeetingList base={base} />} />
@@ -929,21 +923,21 @@ export function LiveDashboard({ base }: { base: string }) {
   if (role === 'staff' && user.role === 'staff') return (
     <DashboardShell base={base}><Routes><Route path="kata-sandi" element={<MyPasswordPage />} />
       <Route path="" element={<Navigate to={`${base}/laporan-kloter`} replace />} />
-      <Route path="jemaah" element={<ManifestPage />} /><Route path="laporan-umrah" element={<UmrahTravelList base={base} />} /><Route path="laporan-umrah/baru" element={<UmrahTravelForm key="new" base={base} />} /><Route path="laporan-umrah/:id" element={<UmrahTravelForm key="edit" base={base} />} />
+      <Route path="jemaah" element={<ManifestPage />} /><Route path="pelaporan" element={<ReportingHub base={base}/>} /><Route path="laporan-umrah" element={<UmrahTravelList base={base} />} /><Route path="laporan-umrah/baru" element={<UmrahTravelForm key="new" base={base} />} /><Route path="laporan-umrah/:id" element={<UmrahTravelForm key="edit" base={base} />} />
         <Route path="pengaduan" element={<ComplaintList base={base} />} />
         <Route path="pengaduan/:id" element={<ComplaintDetail base={base} />} />
         <Route path="laporan-kloter" element={<OperationsDashboard base={base} kind="returns" />} />
       <Route path="laporan-kloter/:id" element={<ReturnReportEditor base={base} />} />
-      <Route path="izin-ppiu" element={<OperationsDashboard base={base} kind="ppiu" />} />
+      <Route path="perizinan" element={<LicensingHub base={base}/>} /><Route path="izin-ppiu" element={<OperationsDashboard base={base} kind="ppiu" />} />
     </Routes></DashboardShell>
   );
   if (role === 'travel' && user.role === 'travel') return (
-    <DashboardShell base={base}><Routes><Route path="kata-sandi" element={<MyPasswordPage />} /><Route path="laporan-umrah" element={<UmrahTravelList base={base} />} /><Route path="laporan-umrah/baru" element={<UmrahTravelForm key="new" base={base} />} /><Route path="laporan-umrah/:id" element={<UmrahTravelForm key="edit" base={base} />} /><Route path="" element={<TravelPage />} /></Routes></DashboardShell>
+    <DashboardShell base={base}><Routes><Route path="kata-sandi" element={<MyPasswordPage />} /><Route path="pelaporan" element={<ReportingHub base={base}/>} /><Route path="laporan-umrah" element={<UmrahTravelList base={base} />} /><Route path="laporan-umrah/baru" element={<UmrahTravelForm key="new" base={base} />} /><Route path="laporan-umrah/:id" element={<UmrahTravelForm key="edit" base={base} />} /><Route path="" element={<TravelPage />} /></Routes></DashboardShell>
   );
   if (role === 'pengawas' && user.role === 'pengawas') return (
     <DashboardShell base={base}>
       <Routes><Route path="kata-sandi" element={<MyPasswordPage />} />
-        <Route path="laporan-umrah" element={<UmrahTravelList base={base} />} /><Route path="laporan-umrah/baru" element={<UmrahTravelForm key="new" base={base} />} /><Route path="laporan-umrah/:id" element={<UmrahTravelForm key="edit" base={base} />} /><Route path="" element={<SupervisionList base={base} />} />
+        <Route path="pelaporan" element={<ReportingHub base={base}/>} /><Route path="laporan-umrah" element={<UmrahTravelList base={base} />} /><Route path="laporan-umrah/baru" element={<UmrahTravelForm key="new" base={base} />} /><Route path="laporan-umrah/:id" element={<UmrahTravelForm key="edit" base={base} />} /><Route path="" element={<SupervisionList base={base} />} />
         <Route path="pengawasan" element={<SupervisionList base={base} />} />
         <Route path="pengawasan/baru" element={<SupervisionForm base={base} />} />
         <Route path="pengawasan/:id" element={<SupervisionForm base={base} />} />
@@ -956,7 +950,7 @@ export function LiveDashboard({ base }: { base: string }) {
       <Routes><Route path="kata-sandi" element={<MyPasswordPage />} />
         <Route path="" element={<Overview base={base} />} />
         <Route path="penjadwalan" element={<SchedulingView base={base} />} />
-        <Route path="konsultasi" element={<ConsultationList base={base} />} />
+        <Route path="layanan-konsultasi" element={<ConsultationHub base={base}/>} /><Route path="konsultasi" element={<ConsultationList base={base} />} />
         <Route path="konsultasi/:id" element={<ConsultationDetail base={base} />} />
         <Route path="meeting/:id" element={<MeetingView base={base} />} />
         <Route path="video" element={<MeetingList base={base} />} />
@@ -970,7 +964,7 @@ export function LiveDashboard({ base }: { base: string }) {
     <DashboardShell base={base}>
       <Routes><Route path="kata-sandi" element={<MyPasswordPage />} />
         <Route path="" element={<Overview base={base} />} />
-        <Route path="konsultasi" element={<ConsultationList base={base} />} />
+        <Route path="layanan-konsultasi" element={<ConsultationHub base={base}/>} /><Route path="konsultasi" element={<ConsultationList base={base} />} />
         <Route path="konsultasi/:id" element={<ConsultationDetail base={base} />} />
         <Route path="meeting/:id" element={<MeetingView base={base} />} />
         <Route path="video" element={<MeetingList base={base} />} />
