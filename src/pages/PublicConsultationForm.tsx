@@ -38,6 +38,8 @@ export default function PublicConsultationForm() {
   const [whatsapp, setWhatsapp] = useState('');
   const [email, setEmail] = useState('');
   const [description, setDescription] = useState('');
+  const [driveUrl,setDriveUrl]=useState('');
+  const isManasik=slug==='manasik-kabupaten-kota';
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState<{ reference: string } | null>(null);
@@ -53,13 +55,16 @@ export default function PublicConsultationForm() {
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError('');
+    if(isManasik&&driveUrl.trim()){try{const url=new URL(driveUrl.trim());if(url.protocol!=='https:'||!['drive.google.com','docs.google.com'].includes(url.hostname)||url.username||url.password)throw Error();}catch{setError('Gunakan link HTTPS Google Drive yang valid.');return}}
+    const reportDescription=isManasik&&driveUrl.trim()?`${description.trim()}\n\nLink Google Drive dokumen kegiatan: ${driveUrl.trim()}`:description;
+    if(reportDescription.length>4000){setError('Ringkasan dan link dokumen maksimal 4.000 karakter.');return}
     setSaving(true);
     try {
       const data = await api<{ consultation: { reference: string } }>('/consultations/public', {
         method: 'POST',
         body: {
           topic: service.title,
-          description,
+          description:reportDescription,
           guest_name: name,
           guest_email: email || undefined,
           guest_phone: whatsapp || undefined,
@@ -102,16 +107,17 @@ export default function PublicConsultationForm() {
                 <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="nama@email.com" />
               </label>
               <label>
-                Penjelasan kebutuhan
+                {isManasik?'Ringkasan kegiatan manasik':'Penjelasan kebutuhan'}
                 <textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Jelaskan kebutuhan atau permasalahan yang ingin ditindaklanjuti."
+                  maxLength={isManasik?1900:4000} placeholder={isManasik?'Tuliskan penyelenggara, tanggal, lokasi, pembimbing, dan jumlah peserta kegiatan.':'Jelaskan kebutuhan atau permasalahan yang ingin ditindaklanjuti.'}
                   required
                   rows={5}
                   style={{ display: 'block', width: '100%', marginTop: 6, border: '1px solid var(--line)', borderRadius: 9, padding: 11, outline: 0, font: 'inherit', resize: 'vertical' }}
                 />
               </label>
+              {isManasik&&<><label>Link folder Google Drive<input type="url" inputMode="url" maxLength={2000} value={driveUrl} onChange={e=>setDriveUrl(e.target.value)} placeholder="https://drive.google.com/drive/folders/..."/></label><p>Cukup satu folder berisi daftar peserta, materi, dan dokumentasi kegiatan. Berikan akses lihat kepada petugas pemeriksa.</p></>}
               <button className="btn primary full" disabled={saving}>
                 {saving ? 'Mengirim...' : 'Kirim pengajuan'} <ArrowRight size={16} />
               </button>
