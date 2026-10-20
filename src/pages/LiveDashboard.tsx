@@ -159,7 +159,7 @@ export function DashboardShell({ base, children }: { base: string; children: Rea
   const menuPath=location.pathname.replace(`${base}/laporan-umrah`,`${base}/tiket-perjalanan`).replace(`${base}/laporan-kloter`,`${base}/laporan-kloter`).replace(`${base}/izin-ppiu`,`${base}/perizinan`).replace(`${base}/pengajuan`,`${base}/perizinan`).replace(new RegExp(`^${base}/(?:konsultasi|penjadwalan|video|meeting)(?=/|$)`),`${base}/layanan-konsultasi`);
   const menuActive=(path:string)=>menuPath===path||(path!==base&&menuPath.startsWith(path+'/'));
   const roleLabel = roleNames[role]||role;
-  const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  const today = new Date().toLocaleDateString('id-ID', {timeZone:'Asia/Jakarta', weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 
   function logout() {
     clearAuth();

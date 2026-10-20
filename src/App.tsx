@@ -61,7 +61,7 @@ const ORG_PHONE='0821-8428-2450';
 const ORG_WEB='https://riau.haji.go.id';
 const ORG_EMAIL='riau@haji.go.id';
 
-function serviceRoles(slug:string){return slug==='pemulangan-haji-reguler'?['admin']:slug==='manasik-kabupaten-kota'?['admin','kabkota','kbihu']:slug==='perizinan-kbihu'?['admin','kbihu']:['admin','travel']}
+function serviceRoles(slug:string){return slug==='pemulangan-haji-reguler'?['admin','operator']:slug==='manasik-kabupaten-kota'?['admin','operator','kabkota','kbihu']:slug==='perizinan-kbihu'?['admin','operator','kbihu']:['admin','operator','travel']}
 function useVisibleServices(){return services.filter(s=>s.status==='public')}
 function ServiceAccess({children,slug:fixed}:{children:React.ReactNode;slug?:string}){const {slug:routeSlug}=useParams();const slug=fixed||routeSlug||'';const {user,isAuth}=useAuth();if(slug==='permasalahan-umrah-haji-khusus')return <>{children}</>;if(!services.some(s=>s.slug===slug))return <Navigate to="/layanan" replace/>;if(!isAuth||!user)return <Navigate to="/masuk" replace/>;if(!serviceRoles(slug).includes(user.role))return <Navigate to={dashboardFor(user.role)} replace/>;const path=slug==='pelaporan-travel-umrah'?'tiket-perjalanan':slug==='pemulangan-haji-reguler'?'laporan-kloter':slug==='manasik-kabupaten-kota'?'manasik':'perizinan';return <Navigate to={`${dashboardFor(user.role)}/${path}`} replace/>}
 
