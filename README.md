@@ -178,3 +178,16 @@ Status: **Keberangkatan → Sudah Berangkat → Kepulangan / Kepulangan dengan C
 Identitas travel diambil dari akun. Admin memiliki pencarian tiket pada ringkasan. Daftar tiket dilengkapi pencarian dan filter status, maskapai, rute keberangkatan. Form menyediakan dropdown maskapai/rute dengan opsi lainnya dan nama petugas sebanyak jumlah petugas. Dokumen menggunakan link folder Google Drive.
 
 Memerlukan backend tiket perjalanan dan dua migration pada README backend. Validasi lokal: TypeScript/Vite build dan 49 pengujian backend. Uji interaktif produksi akun admin/travel tetap diperlukan.
+
+
+## Portal operasional Riau — 20 Oktober 2026
+
+Katalog publik hanya Pengaduan Jemaah, Direktori PPIU/PIHK Riau, Fikih Haji, Tutorial Manasik, Bacaan Doa, dan Minta Video Call. Keberangkatan/kepulangan digabung menjadi Tiket Perjalanan Jemaah di dashboard Kanwil dan travel. Menu pelaporan haji khusus, pemulangan terpisah, dan pemulangan petugas dihapus. Pemulangan Haji Reguler hanya Kanwil. Manasik hanya Kanwil, Kemenhaj kabupaten/kota, dan KBIHU.
+
+Area akun: /admin (Kanwil), /kabkota, /travel (PPIU/PIHK), /kbihu. Halaman Profil & Identitas menampilkan peran/organisasi dan isian nama, telepon, alamat, jabatan, nomor pegawai opsional. Kanwil mengelola organisasi, akun, peran, serta verifikasi izin; pendaftaran mandiri travel tidak memverifikasi izin.
+
+Pengaduan dibagi Umrah/Haji Khusus/Haji Reguler. Umrah/Haji Khusus memilih travel terverifikasi dari dropdown atau mengisi travel tidak terdaftar secara manual. Haji Reguler tidak meminta data travel/paket. Direktori hanya menampilkan organisasi Riau yang izinnya telah diverifikasi dan aktif.
+
+Perizinan menyediakan form organisasi lengkap serta daftar/detail/review/revisi. Pencocokan persis dengan Google Form referensi belum selesai karena tautan meminta login. Manasik mempunyai laporan, link dokumen, pemeriksaan Kanwil dan perbaikan organisasi pemilik. Fikih/Manasik/Doa menampilkan materi sumber dan video serta chat privat dengan petugas Kanwil. Materi dan chat masuk dikelola dari dashboard Kanwil. Video call tetap melalui permintaan konsultasi dan Google Meet.
+
+Memerlukan backend riau-portal-v3 dan migration 20261020120533_portal_operational_redesign.sql. Data direktori harus diverifikasi dari sumber izin resmi oleh Kanwil; data testing tidak diterbitkan sebagai penyelenggara berizin.

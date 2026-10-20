@@ -12,6 +12,7 @@ import { OperationsDashboard, ReturnReportEditor } from './OperationsPages';
 import ManifestPage from './ManifestPage';
 import { UmrahTravelList, UmrahTravelForm } from './UmrahTravelPages';
 import { ComplaintList, ComplaintDetail } from './ComplaintPages';
+import {KanwilOverview,ProfilePage,LicensingPage,ManasikPage,KnowledgeAdmin,ChatAdmin,roleNames,dashboardFor} from './PortalPages';
 import { AccountsPage, TravelPage, MyPasswordPage } from './AccountPages';
 
 /* ---------- Types ---------- */
@@ -105,12 +106,14 @@ function isPelaporan(c: { topic?: string }): boolean {
 }
 
 /* ---------- Shell ---------- */
-function useRole(base: string): 'pengguna' | 'konsultan' | 'admin' | 'pengawas' | 'staff' | 'travel' {
+function useRole(base: string): 'pengguna' | 'konsultan' | 'admin' | 'pengawas' | 'staff' | 'travel' | 'kabkota' | 'kbihu' {
   if (base === '/konsultan') return 'konsultan';
   if (base === '/admin') return 'admin';
   if (base === '/pengawas') return 'pengawas';
   if (base === '/staff') return 'staff';
   if (base === '/travel') return 'travel';
+  if (base === '/kabkota') return 'kabkota';
+  if (base === '/kbihu') return 'kbihu';
   return 'pengguna';
 }
 
@@ -134,19 +137,21 @@ export function DashboardShell({ base, children }: { base: string; children: Rea
 
   const nav: { to: string; label: string; icon: React.ReactNode }[] = [];
   const add=(path:string,label:string,icon:React.ReactNode)=>nav.push({to:path?`${base}/${path}`:base,label,icon});
-  if(isAdmin||isCons||isSupervisor||(!isTravel&&!isOperationsStaff))add('','Ringkasan',<LayoutDashboard size={17}/>);
-  if(isAdmin||isOperationsStaff)add('perizinan','Pengajuan Perizinan',<ClipboardList size={17}/>);
-  if(isTravel)add('','Pengajuan Perizinan',<ClipboardList size={17}/>);
-  if(isAdmin||isOperationsStaff||isTravel||isSupervisor)add('pelaporan','Pelaporan',<FileText size={17}/>);
-  if(isAdmin||isOperationsStaff)add('pengaduan','Pengaduan',<MessageSquare size={17}/>);
+  if(isAdmin||isCons||isSupervisor||role==='pengguna')add('','Ringkasan',<LayoutDashboard size={17}/>);
+  if(isAdmin||isTravel)add('tiket-perjalanan','Tiket Perjalanan Jemaah',<FileText size={17}/>);
+  if(isAdmin)add('laporan-kloter','Pemulangan Haji Reguler',<FileText size={17}/>);
+  if(isAdmin||role==='kabkota'||role==='kbihu')add('manasik','Pelaporan Manasik',<FileText size={17}/>);
+  if(isAdmin||isTravel||role==='kbihu')add('perizinan','Pengajuan Perizinan',<ClipboardList size={17}/>);
+  if(isAdmin)add('pengaduan','Pengaduan Jemaah',<MessageSquare size={17}/>);
   if(isAdmin||isSupervisor)add('pengawasan','Pengawasan',<ClipboardCheck size={17}/>);
-  if(isAdmin||isOperationsStaff)add('jemaah','Data Jemaah',<Users size={17}/>);
-  if(isAdmin||isCons||(!isTravel&&!isOperationsStaff&&!isSupervisor))add('layanan-konsultasi','Konsultasi / Video Call',<Video size={17}/>);
-  if(isAdmin)add('akun','Akun & Peran',<Users size={17}/>);
+  if(isAdmin)add('jemaah','Data Jemaah',<Users size={17}/>);
+  if(isAdmin){add('materi','Materi Jemaah',<FileText size={17}/>);add('chat','Chat Jemaah',<MessageSquare size={17}/>);add('akun','Akun & Organisasi',<Users size={17}/>);}
+  add('profil','Profil & Identitas',<Users size={17}/>);
+  if(isAdmin||isCons||role==='pengguna')add('layanan-konsultasi','Konsultasi / Video Call',<Video size={17}/>);
   add('kata-sandi','Kata Sandi Saya',<Users size={17}/>);
   const menuPath=location.pathname.replace(`${base}/laporan-umrah`,`${base}/pelaporan`).replace(`${base}/laporan-kloter`,`${base}/pelaporan`).replace(`${base}/izin-ppiu`,`${base}/perizinan`).replace(`${base}/pengajuan`,`${base}/perizinan`).replace(new RegExp(`^${base}/(?:konsultasi|penjadwalan|video|meeting)(?=/|$)`),`${base}/layanan-konsultasi`);
   const menuActive=(path:string)=>menuPath===path||(path!==base&&menuPath.startsWith(path+'/'));
-  const roleLabel = isAdmin ? 'Administrator' : isOperationsStaff ? 'Staf' : isTravel ? 'Perusahaan Travel' : isCons ? 'Konsultan' : isSupervisor ? 'Pengawas' : 'Pengguna';
+  const roleLabel = roleNames[role]||role;
   const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 
   function logout() {
@@ -274,7 +279,7 @@ function Overview({ base }: { base: string }) {
 
   return (
     <>
-      {role==='admin'&&<form className="dash-panel form-grid" onSubmit={e=>{e.preventDefault();ticketNavigate(`${base}/pelaporan?jenis=umrah&q=${encodeURIComponent(ticketSearch)}`)}}><label>Cari tiket perjalanan umrah<input type="search" maxLength={120} value={ticketSearch} onChange={e=>setTicketSearch(e.target.value)} placeholder="Nomor tiket, travel, maskapai, atau rute"/></label><button type="submit" className="btn primary">Cari tiket</button></form>}
+      {role==='admin'&&<form className="dash-panel form-grid" onSubmit={e=>{e.preventDefault();ticketNavigate(`${base}/tiket-perjalanan?q=${encodeURIComponent(ticketSearch)}`)}}><label>Cari tiket perjalanan umrah<input type="search" maxLength={120} value={ticketSearch} onChange={e=>setTicketSearch(e.target.value)} placeholder="Nomor tiket, travel, maskapai, atau rute"/></label><button type="submit" className="btn primary">Cari tiket</button></form>}
       <div className="dash-grid cols-4">
         {statCards.map((s) => (
           <div className={`stat-card ${s.cls}`} key={s.label}>
@@ -897,19 +902,19 @@ export function LiveDashboard({ base }: { base: string }) {
 
   if (!user || !isAuth) return <Navigate to="/masuk?sesi=berakhir" replace />;
   if (isStaff && user.role !== role && user.role !== 'admin') return <AuthGuard />;
-  if (!isStaff && user.role !== role && !(role === 'staff' && user.role === 'admin')) return <AuthGuard />;
+  if (!isStaff && user.role !== role && !(role === 'staff' && user.role === 'admin')) return <Navigate to={dashboardFor(user.role)} replace/>;
   if (role === 'staff' && user.role === 'admin') return <Navigate to="/admin/laporan-kloter" replace />;
   if (role === 'admin' && user.role === 'admin') return (
     <DashboardShell base={base}>
-      <Routes><Route path="kata-sandi" element={<MyPasswordPage />} />
-        <Route path="" element={<Overview base={base} />} />
-        <Route path="pengajuan" element={<Navigate to={`${base}/perizinan`} replace/>} />
-        <Route path="jemaah" element={<ManifestPage />} /><Route path="pelaporan" element={<ReportingHub base={base}/>} /><Route path="laporan-umrah" element={<UmrahTravelList base={base} />} /><Route path="laporan-umrah/baru" element={<UmrahTravelForm key="new" base={base} />} /><Route path="laporan-umrah/:id" element={<UmrahTravelForm key="edit" base={base} />} />
+      <Routes><Route path="profil" element={<ProfilePage/>}/><Route path="kata-sandi" element={<MyPasswordPage />} />
+        <Route path="" element={<KanwilOverview/>} />
+        <Route path="tiket-perjalanan" element={<UmrahTravelList base={base}/>}/><Route path="manasik" element={<ManasikPage/>}/><Route path="materi" element={<KnowledgeAdmin/>}/><Route path="chat" element={<ChatAdmin/>}/><Route path="pengajuan" element={<Navigate to={`${base}/perizinan`} replace/>} />
+        <Route path="jemaah" element={<ManifestPage />} /><Route path="pelaporan" element={<Navigate to={`${base}/tiket-perjalanan`} replace/>} /><Route path="laporan-umrah" element={<UmrahTravelList base={base} />} /><Route path="laporan-umrah/baru" element={<UmrahTravelForm key="new" base={base} />} /><Route path="laporan-umrah/:id" element={<UmrahTravelForm key="edit" base={base} />} />
         <Route path="pengaduan" element={<ComplaintList base={base} />} />
         <Route path="pengaduan/:id" element={<ComplaintDetail base={base} />} />
         <Route path="laporan-kloter" element={<OperationsDashboard base={base} kind="returns" />} />
         <Route path="laporan-kloter/:id" element={<ReturnReportEditor base={base} />} />
-        <Route path="perizinan" element={<LicensingHub base={base}/>} /><Route path="izin-ppiu" element={<OperationsDashboard base={base} kind="ppiu" />} />
+        <Route path="perizinan" element={<LicensingPage/>} /><Route path="izin-ppiu" element={<Navigate to={`${base}/perizinan`} replace/>} />
         <Route path="penjadwalan" element={<SchedulingView base={base} />} />
         <Route path="akun" element={<AccountsPage />} />
         <Route path="pengawasan" element={<SupervisionList base={base} />} />
@@ -922,25 +927,12 @@ export function LiveDashboard({ base }: { base: string }) {
       </Routes>
     </DashboardShell>
   );
-  if (role === 'staff' && user.role === 'staff') return (
-    <DashboardShell base={base}><Routes><Route path="kata-sandi" element={<MyPasswordPage />} />
-      <Route path="" element={<Navigate to={`${base}/laporan-kloter`} replace />} />
-      <Route path="jemaah" element={<ManifestPage />} /><Route path="pelaporan" element={<ReportingHub base={base}/>} /><Route path="laporan-umrah" element={<UmrahTravelList base={base} />} /><Route path="laporan-umrah/baru" element={<UmrahTravelForm key="new" base={base} />} /><Route path="laporan-umrah/:id" element={<UmrahTravelForm key="edit" base={base} />} />
-        <Route path="pengaduan" element={<ComplaintList base={base} />} />
-        <Route path="pengaduan/:id" element={<ComplaintDetail base={base} />} />
-        <Route path="laporan-kloter" element={<OperationsDashboard base={base} kind="returns" />} />
-      <Route path="laporan-kloter/:id" element={<ReturnReportEditor base={base} />} />
-      <Route path="perizinan" element={<LicensingHub base={base}/>} /><Route path="izin-ppiu" element={<OperationsDashboard base={base} kind="ppiu" />} />
-    </Routes></DashboardShell>
-  );
-  if (role === 'travel' && user.role === 'travel') return (
-    <DashboardShell base={base}><Routes><Route path="kata-sandi" element={<MyPasswordPage />} /><Route path="pelaporan" element={<ReportingHub base={base}/>} /><Route path="laporan-umrah" element={<UmrahTravelList base={base} />} /><Route path="laporan-umrah/baru" element={<UmrahTravelForm key="new" base={base} />} /><Route path="laporan-umrah/:id" element={<UmrahTravelForm key="edit" base={base} />} /><Route path="" element={<TravelPage />} /></Routes></DashboardShell>
-  );
+  if(role==='staff'&&user.role==='staff')return <DashboardShell base={base}><Routes><Route path="profil" element={<ProfilePage/>}/><Route path="kata-sandi" element={<MyPasswordPage/>}/><Route path="*" element={<ProfilePage/>}/></Routes></DashboardShell>;
+  if (['travel','kabkota','kbihu'].includes(role)&&user.role===role)return <DashboardShell base={base}><Routes><Route path="profil" element={<ProfilePage/>}/><Route path="kata-sandi" element={<MyPasswordPage/>}/><Route path="" element={<Navigate to={`${base}/${role==='travel'?'tiket-perjalanan':'manasik'}`} replace/>}/>{role==='travel'&&<><Route path="tiket-perjalanan" element={<UmrahTravelList base={base}/>}/><Route path="pelaporan" element={<Navigate to={`${base}/tiket-perjalanan`} replace/>}/><Route path="laporan-umrah" element={<Navigate to={`${base}/tiket-perjalanan`} replace/>}/><Route path="laporan-umrah/baru" element={<UmrahTravelForm key="new" base={base}/>}/><Route path="laporan-umrah/:id" element={<UmrahTravelForm key="edit" base={base}/>}/></>}{role!=='kabkota'&&<Route path="perizinan" element={<LicensingPage/>}/>} {role!=='travel'&&<Route path="manasik" element={<ManasikPage/>}/>}<Route path="*" element={<Navigate to={base} replace/>}/></Routes></DashboardShell>;
   if (role === 'pengawas' && user.role === 'pengawas') return (
     <DashboardShell base={base}>
-      <Routes><Route path="kata-sandi" element={<MyPasswordPage />} />
-        <Route path="pelaporan" element={<ReportingHub base={base}/>} /><Route path="laporan-umrah" element={<UmrahTravelList base={base} />} /><Route path="laporan-umrah/baru" element={<UmrahTravelForm key="new" base={base} />} /><Route path="laporan-umrah/:id" element={<UmrahTravelForm key="edit" base={base} />} /><Route path="" element={<SupervisionList base={base} />} />
-        <Route path="pengawasan" element={<SupervisionList base={base} />} />
+      <Routes><Route path="profil" element={<ProfilePage/>}/><Route path="kata-sandi" element={<MyPasswordPage />} />
+        <Route path="" element={<SupervisionList base={base}/>}/><Route path="pengawasan" element={<SupervisionList base={base} />} />
         <Route path="pengawasan/baru" element={<SupervisionForm base={base} />} />
         <Route path="pengawasan/:id" element={<SupervisionForm base={base} />} />
       </Routes>
@@ -949,7 +941,7 @@ export function LiveDashboard({ base }: { base: string }) {
   if (role === 'konsultan' && user.role === 'admin') return <Navigate to={`${base.replace('konsultan', 'admin')}`} replace />;
   if (role === 'konsultan' && user.role === 'konsultan') return (
     <DashboardShell base={base}>
-      <Routes><Route path="kata-sandi" element={<MyPasswordPage />} />
+      <Routes><Route path="profil" element={<ProfilePage/>}/><Route path="kata-sandi" element={<MyPasswordPage />} />
         <Route path="" element={<Overview base={base} />} />
         <Route path="penjadwalan" element={<SchedulingView base={base} />} />
         <Route path="layanan-konsultasi" element={<ConsultationHub base={base}/>} /><Route path="konsultasi" element={<ConsultationList base={base} />} />
@@ -964,7 +956,7 @@ export function LiveDashboard({ base }: { base: string }) {
 
   return (
     <DashboardShell base={base}>
-      <Routes><Route path="kata-sandi" element={<MyPasswordPage />} />
+      <Routes><Route path="profil" element={<ProfilePage/>}/><Route path="kata-sandi" element={<MyPasswordPage />} />
         <Route path="" element={<Overview base={base} />} />
         <Route path="layanan-konsultasi" element={<ConsultationHub base={base}/>} /><Route path="konsultasi" element={<ConsultationList base={base} />} />
         <Route path="konsultasi/:id" element={<ConsultationDetail base={base} />} />

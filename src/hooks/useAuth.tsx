@@ -14,7 +14,7 @@ import {
 
 import { formContinuation } from '../lib/formDraft';
 
-export type TravelRegistrationInput = {email:string;password:string;name:string;company_name:string;nib:string;office_address:string};
+export type TravelRegistrationInput = {email:string;password:string;name:string;company_name:string;nib:string;office_address:string;organization_type:string;phone:string;address:string;position:string;employee_number:string};
 
 type AuthContextValue = {
   user: User | null;

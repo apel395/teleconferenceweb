@@ -4,8 +4,9 @@ export type User = {
   id: string;
   email: string;
   name: string;
-  role: 'admin' | 'staff' | 'travel' | 'konsultan' | 'pengguna' | 'pengawas';
+  role: 'admin' | 'kabkota' | 'kbihu' | 'staff' | 'travel' | 'konsultan' | 'pengguna' | 'pengawas';
   company_id?: string | null;
+  phone?:string;address?:string;position?:string;employee_number?:string;
 };
 
 export type AuthSession = {
