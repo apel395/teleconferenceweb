@@ -167,3 +167,14 @@ Perubahan yang membutuhkan schema baru (terutama Pengawasan) **tidak boleh di-me
 - Perusahaan travel: area `/travel` untuk pengajuan awal PPIU dan riwayat perusahaan sendiri. Pengajuan awal bukan penerbitan izin nasional.
 
 Peran lama untuk konsultasi dan Pengawasan tetap tersedia. Belum ada akun staf/travel produksi dan belum ada data perusahaan riil; alur login dan isolasi perusahaan perlu diuji dengan akun uji yang dibuat admin. Pengajuan PPIU publik sebelumnya tidak otomatis menjadi riwayat akun travel. Dokumen izin dan alur layanan travel lain masih tahap berikutnya.
+
+
+## Tiket Perjalanan Umrah — 20 Oktober 2026
+
+Menu **Tiket Perjalanan Umrah** menggantikan layanan keberangkatan/kepulangan Umrah terpisah. Satu tiket digunakan sampai selesai, dengan tab Keberangkatan, Kepulangan, dan Riwayat tiket. Laporan kepulangan kloter haji tetap layanan tersendiri.
+
+Status: **Keberangkatan → Sudah Berangkat → Kepulangan / Kepulangan dengan Catatan → Sudah Pulang**. Keberangkatan memiliki keterangan draft atau menunggu pemeriksaan admin. Admin memeriksa dan mengonfirmasi sudah berangkat; travel menyimpan proses kepulangan, mengisi catatan jika ada kendala/kondisi khusus, lalu mengonfirmasi sudah tiba untuk menutup tiket. Catatan dan kedua formulir tetap tersimpan.
+
+Identitas travel diambil dari akun. Admin memiliki pencarian tiket pada ringkasan. Daftar tiket dilengkapi pencarian dan filter status, maskapai, rute keberangkatan. Form menyediakan dropdown maskapai/rute dengan opsi lainnya dan nama petugas sebanyak jumlah petugas. Dokumen menggunakan link folder Google Drive.
+
+Memerlukan backend tiket perjalanan dan dua migration pada README backend. Validasi lokal: TypeScript/Vite build dan 49 pengujian backend. Uji interaktif produksi akun admin/travel tetap diperlukan.

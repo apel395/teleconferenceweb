@@ -247,6 +247,7 @@ function useMeetings() {
 /* ---------- Overview ---------- */
 function Overview({ base }: { base: string }) {
   const { list, reload } = useConsultations();
+  const [ticketSearch,setTicketSearch]=useState('');const ticketNavigate=useNavigate();
   const meetings: Meeting[] = [];
   const role = useRole(base);
   const isStaff = role === 'admin' || role === 'konsultan' || role === 'pengawas';
@@ -273,6 +274,7 @@ function Overview({ base }: { base: string }) {
 
   return (
     <>
+      {role==='admin'&&<form className="dash-panel form-grid" onSubmit={e=>{e.preventDefault();ticketNavigate(`${base}/pelaporan?jenis=umrah&q=${encodeURIComponent(ticketSearch)}`)}}><label>Cari tiket perjalanan umrah<input type="search" maxLength={120} value={ticketSearch} onChange={e=>setTicketSearch(e.target.value)} placeholder="Nomor tiket, travel, maskapai, atau rute"/></label><button type="submit" className="btn primary">Cari tiket</button></form>}
       <div className="dash-grid cols-4">
         {statCards.map((s) => (
           <div className={`stat-card ${s.cls}`} key={s.label}>
@@ -613,7 +615,7 @@ function Submissions({ base,category='all' }: { base: string;category?:'all'|'re
 
 function ReportingHub({base}:{base:string}) {
  const {user}=useAuth();const [params,setParams]=useSearchParams();const admin=user?.role==='admin',staff=admin||user?.role==='staff';
- const tabs=[['umrah','Keberangkatan / Pemulangan Umrah'],...(staff?[['kloter','Kepulangan Kloter']]:[]),...(admin?[['manasik','Manasik'],['lainnya','Laporan lainnya']]:[])];
+ const tabs=[['umrah','Tiket Perjalanan Umrah'],...(staff?[['kloter','Kepulangan Kloter']]:[]),...(admin?[['manasik','Manasik'],['lainnya','Laporan lainnya']]:[])];
  const selected=tabs.some(([id])=>id===params.get('jenis'))?params.get('jenis')!:'umrah';
  return <><h1>Pelaporan</h1><div className="form-grid" style={{marginBottom:20}}>{tabs.map(([id,label])=><button type="button" key={id} className={`btn ${selected===id?'primary':'light'}`} aria-pressed={selected===id} onClick={()=>setParams({jenis:id})}>{label}</button>)}</div>{selected==='umrah'?<UmrahTravelList base={base}/>:selected==='kloter'?<OperationsDashboard base={base} kind="returns"/>:<Submissions key={selected} base={base} category={selected==='manasik'?'manasik':'reports'}/>}</>;
 }
