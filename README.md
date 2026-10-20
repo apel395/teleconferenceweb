@@ -200,3 +200,7 @@ Tiket menampilkan halaman detail dengan kartu ringkasan, tahap perjalanan, pener
 Form perizinan disesuaikan dengan screenshot Google Form: bidang usaha, surat permohonan, notaris, Kemenkumham, SKDU, bank garansi dan contact person ditambahkan. Penanda wajib mengikuti screenshot, dengan berkas berupa satu folder Google Drive. Field administrasi tambahan ditempatkan di bagian opsional.
 
 Referensi desain: dashboard.haji.go.id (navigasi operasional) dan tampilan detail work item Jira Service Management (status, konteks, tindakan dan aktivitas). Validasi: 12 tes frontend, 71 tes backend, dan npm run build.
+
+### Papan monitoring perjalanan
+
+Menu Perjalanan Jemaah menyediakan Papan tiket (default) dan Tabel. Satu kartu mewakili satu perjalanan/rombongan travel, bukan pendaftaran atau pembayaran per jemaah. Lima kolom mengikuti status perjalanan yang sudah ada; Draft dan Submitted masuk Keberangkatan dengan label berbeda. Klik kartu membuka detail dan tindakan sesuai role. Status diubah melalui tindakan terverifikasi, bukan drag-and-drop. Pencarian, filter, dan paginasi tetap berlaku; jumlah di kolom adalah jumlah pada halaman aktif, maksimal 25 tiket per halaman.
