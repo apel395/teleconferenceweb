@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, Navigate, NavLink, Route, Routes, useNavigate, useParams, useLocation, useSearchParams } from 'react-router-dom';
 import {
-  CalendarDays, CalendarPlus, CheckCircle2, ClipboardCheck, ClipboardList, FileText, LayoutDashboard,
+  CalendarDays, CalendarPlus, Clock3, CheckCircle2, ClipboardCheck, ClipboardList, FileText, LayoutDashboard,
   LogOut, Menu, MessageSquare, Phone, RefreshCw, Users, Video, X
 } from 'lucide-react';
 import { api, getUser } from '../lib/api';
@@ -138,7 +138,7 @@ export function DashboardShell({ base, children }: { base: string; children: Rea
   const nav: { to: string; label: string; icon: React.ReactNode }[] = [];
   const add=(path:string,label:string,icon:React.ReactNode)=>nav.push({to:path?`${base}/${path}`:base,label,icon});
   if(isAdmin||isCons||isSupervisor||role==='pengguna')add('','Ringkasan',<LayoutDashboard size={17}/>);
-  if(isAdmin||isTravel)add('tiket-perjalanan','Tiket Perjalanan Jemaah',<FileText size={17}/>);
+  if(isAdmin||isTravel){add('tiket-perjalanan','Perjalanan Jemaah',<FileText size={17}/>);add('riwayat-perjalanan','Riwayat Perjalanan',<Clock3 size={17}/>);}
   if(isAdmin)add('laporan-kloter','Pemulangan Haji Reguler',<FileText size={17}/>);
   if(isAdmin||role==='kabkota'||role==='kbihu')add('manasik','Pelaporan Manasik',<FileText size={17}/>);
   if(isAdmin||isTravel||role==='kbihu')add('perizinan','Pengajuan Perizinan',<ClipboardList size={17}/>);
@@ -908,7 +908,7 @@ export function LiveDashboard({ base }: { base: string }) {
     <DashboardShell base={base}>
       <Routes><Route path="profil" element={<ProfilePage/>}/><Route path="kata-sandi" element={<MyPasswordPage />} />
         <Route path="" element={<KanwilOverview/>} />
-        <Route path="tiket-perjalanan" element={<UmrahTravelList base={base}/>}/><Route path="manasik" element={<ManasikPage/>}/><Route path="materi" element={<KnowledgeAdmin/>}/><Route path="chat" element={<ChatAdmin/>}/><Route path="pengajuan" element={<Navigate to={`${base}/perizinan`} replace/>} />
+        <Route path="tiket-perjalanan" element={<UmrahTravelList key="active-journeys" base={base}/>}/><Route path="riwayat-perjalanan" element={<UmrahTravelList key="journey-history" base={base} history/>}/><Route path="riwayat-perjalanan/:id" element={<UmrahTravelForm key="journey-history-detail" base={base} historyOnly/>}/><Route path="manasik" element={<ManasikPage/>}/><Route path="materi" element={<KnowledgeAdmin/>}/><Route path="chat" element={<ChatAdmin/>}/><Route path="pengajuan" element={<Navigate to={`${base}/perizinan`} replace/>} />
         <Route path="jemaah" element={<ManifestPage />} /><Route path="pelaporan" element={<Navigate to={`${base}/tiket-perjalanan`} replace/>} /><Route path="laporan-umrah" element={<UmrahTravelList base={base} />} /><Route path="laporan-umrah/baru" element={<UmrahTravelForm key="new" base={base} />} /><Route path="laporan-umrah/:id" element={<UmrahTravelForm key="edit" base={base} />} />
         <Route path="pengaduan" element={<ComplaintList base={base} />} />
         <Route path="pengaduan/:id" element={<ComplaintDetail base={base} />} />
@@ -928,7 +928,7 @@ export function LiveDashboard({ base }: { base: string }) {
     </DashboardShell>
   );
   if(role==='staff'&&user.role==='staff')return <DashboardShell base={base}><Routes><Route path="profil" element={<ProfilePage/>}/><Route path="kata-sandi" element={<MyPasswordPage/>}/><Route path="*" element={<ProfilePage/>}/></Routes></DashboardShell>;
-  if (['travel','kabkota','kbihu'].includes(role)&&user.role===role)return <DashboardShell base={base}><Routes><Route path="profil" element={<ProfilePage/>}/><Route path="kata-sandi" element={<MyPasswordPage/>}/><Route path="" element={<Navigate to={`${base}/${role==='travel'?'tiket-perjalanan':'manasik'}`} replace/>}/>{role==='travel'&&<><Route path="tiket-perjalanan" element={<UmrahTravelList base={base}/>}/><Route path="pelaporan" element={<Navigate to={`${base}/tiket-perjalanan`} replace/>}/><Route path="laporan-umrah" element={<Navigate to={`${base}/tiket-perjalanan`} replace/>}/><Route path="laporan-umrah/baru" element={<UmrahTravelForm key="new" base={base}/>}/><Route path="laporan-umrah/:id" element={<UmrahTravelForm key="edit" base={base}/>}/></>}{role!=='kabkota'&&<Route path="perizinan" element={<LicensingPage/>}/>} {role!=='travel'&&<Route path="manasik" element={<ManasikPage/>}/>}<Route path="*" element={<Navigate to={base} replace/>}/></Routes></DashboardShell>;
+  if (['travel','kabkota','kbihu'].includes(role)&&user.role===role)return <DashboardShell base={base}><Routes><Route path="profil" element={<ProfilePage/>}/><Route path="kata-sandi" element={<MyPasswordPage/>}/><Route path="" element={<Navigate to={`${base}/${role==='travel'?'tiket-perjalanan':'manasik'}`} replace/>}/>{role==='travel'&&<><Route path="tiket-perjalanan" element={<UmrahTravelList key="active-journeys" base={base}/>}/><Route path="riwayat-perjalanan" element={<UmrahTravelList key="journey-history" base={base} history/>}/><Route path="riwayat-perjalanan/:id" element={<UmrahTravelForm key="journey-history-detail" base={base} historyOnly/>}/><Route path="pelaporan" element={<Navigate to={`${base}/tiket-perjalanan`} replace/>}/><Route path="laporan-umrah" element={<Navigate to={`${base}/tiket-perjalanan`} replace/>}/><Route path="laporan-umrah/baru" element={<UmrahTravelForm key="new" base={base}/>}/><Route path="laporan-umrah/:id" element={<UmrahTravelForm key="edit" base={base}/>}/></>}{role!=='kabkota'&&<Route path="perizinan" element={<LicensingPage/>}/>} {role!=='travel'&&<Route path="manasik" element={<ManasikPage/>}/>}<Route path="*" element={<Navigate to={base} replace/>}/></Routes></DashboardShell>;
   if (role === 'pengawas' && user.role === 'pengawas') return (
     <DashboardShell base={base}>
       <Routes><Route path="profil" element={<ProfilePage/>}/><Route path="kata-sandi" element={<MyPasswordPage />} />

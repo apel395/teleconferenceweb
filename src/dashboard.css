@@ -214,21 +214,6 @@
 
 .journey-page{max-width:1480px}.journey-page>form{max-width:950px}.journey-page label:has(>input[type=checkbox]){display:flex;align-items:flex-start;gap:10px;min-height:44px}.journey-page input[type=checkbox]{width:18px;height:18px;min-height:18px;display:inline-block;flex-shrink:0;padding:0;margin:2px 0}
 
-/* Journey monitoring: cards open the existing permission-checked ticket detail. */
-.journey-list-toolbar{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin:16px 0}
-.journey-board-caption{font-size:13px;color:#66746d;line-height:1.6}
-.journey-board{display:grid;grid-template-columns:repeat(5,minmax(220px,1fr));gap:14px;overflow-x:auto;padding:6px 2px 18px;align-items:start}
-.journey-column{background:#f2f5f2;border:1px solid #e0e7e0;border-radius:12px;padding:12px;min-height:220px}
-.journey-column>header{display:flex;gap:10px;align-items:center;justify-content:space-between;border-top:4px solid #798b7d;padding-top:10px;margin-bottom:16px}
-.journey-column h3{font-size:15px;line-height:1.4;margin:0}
-.journey-column>header>span{background:white;border-radius:20px;padding:4px 9px;font-size:13px}
-.journey-column-departed>header{border-color:#4082b0}.journey-column-return>header{border-color:#8d7c3d}.journey-column-notes>header{border-color:#be7a2c}.journey-column-closed>header{border-color:#2b805b}
-.journey-board-card{display:block;background:white;border:1px solid #dce5dc;border-radius:10px;padding:15px;margin-bottom:12px;color:#23392b;text-decoration:none;box-shadow:0 2px 5px #17332308;overflow-wrap:anywhere}
-.journey-board-card:hover,.journey-board-card:focus-visible{border-color:#2b805b;box-shadow:0 3px 12px #17332320;outline:2px solid #2b805b;outline-offset:2px}
-.journey-board-card>small{color:#68786c;font-size:11px}.journey-board-card h4{font-size:16px;line-height:1.4;margin:8px 0}.journey-board-card>span{font-size:13px}
-.journey-board-card dl{display:grid;grid-template-columns:65px 1fr;gap:7px;font-size:12px;line-height:1.5;margin:15px 0}.journey-board-card dt{color:#768176}.journey-board-card dd{margin:0}
-.journey-card-label{font-size:12px;padding:7px;border-radius:6px;background:#edf4ed}.journey-card-note{font-size:12px;border-left:3px solid #be7a2c;padding-left:9px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
-.journey-board-card>strong{font-size:13px;color:#256846}.journey-column-empty{font-size:13px;color:#738176;line-height:1.6}
-@media(max-width:650px){.journey-board{grid-template-columns:1fr;overflow:visible}.journey-column{min-height:0}.journey-board-card dl{grid-template-columns:80px 1fr}}
-
-.journey-tabs button[aria-pressed="true"]{background:#e8f0e9;color:#2c5e3d}
+/* Compact collapsible journey filters */
+.journey-search-toolbar{display:flex;gap:12px;align-items:center;flex-wrap:wrap}.journey-search-toolbar form{display:flex;gap:10px;align-items:center;flex:1;min-width:250px}.journey-search-toolbar input{min-width:0;flex:1}.journey-search-toolbar button{white-space:nowrap}.journey-filter-panel{background:#f5f7f4;border:1px solid #e0e6dc;padding:18px;border-radius:10px;margin-top:16px}.journey-filter-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-bottom:14px}.journey-filter-grid label{min-width:0;margin:0}.journey-filter-grid select{width:100%;min-width:0}.journey-table-sub{display:block;font-size:12px;line-height:1.5;margin-top:6px;color:#6d786f}.journey-result-count{margin:22px 0 14px;color:#69736a;font-size:14px}.journey-page .table-live td{vertical-align:top}.journey-page .table-live .journey-status{font-size:12px;padding:6px 10px;white-space:normal}.journey-filter-panel[hidden]{display:none}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+@media(max-width:760px){.journey-filter-grid{grid-template-columns:1fr}.journey-search-toolbar form{min-width:0;width:100%;flex-basis:100%}.journey-search-toolbar input{width:100%}.journey-filter-panel{padding:14px}}

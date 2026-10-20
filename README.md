@@ -171,9 +171,9 @@ Peran lama untuk konsultasi dan Pengawasan tetap tersedia. Belum ada akun staf/t
 
 ## Tiket Perjalanan Umrah — 20 Oktober 2026
 
-Menu **Tiket Perjalanan Umrah** menggantikan layanan keberangkatan/kepulangan Umrah terpisah. Satu tiket digunakan sampai selesai, dengan tab Keberangkatan, Kepulangan, dan Riwayat tiket. Laporan kepulangan kloter haji tetap layanan tersendiri.
+Menu **Tiket Perjalanan Umrah** menggantikan layanan keberangkatan/kepulangan Umrah terpisah. Satu tiket digunakan sampai selesai. Detail menampilkan data keberangkatan dan kepulangan bersama; riwayat tersedia pada menu sidebar tersendiri. Laporan kepulangan kloter haji tetap layanan tersendiri.
 
-Status: **Keberangkatan → Sudah Berangkat → Kepulangan / Kepulangan dengan Catatan → Sudah Pulang**. Keberangkatan memiliki keterangan draft atau menunggu pemeriksaan admin. Admin memeriksa dan mengonfirmasi sudah berangkat; travel menyimpan proses kepulangan, mengisi catatan jika ada kendala/kondisi khusus, lalu mengonfirmasi sudah tiba untuk menutup tiket. Catatan dan kedua formulir tetap tersimpan.
+Status: **Draft → Siap Berangkat → Sudah Berangkat → Kepulangan / Kepulangan dengan Catatan → Sudah Pulang**. Submit menjadikan Siap Berangkat. Kanwil memeriksa dan mengonfirmasi pada hari keberangkatan dalam WIB; status berubah setelah konfirmasi dan jadwal keberangkatan tercapai. Travel menyiapkan serta mengirim jadwal tiba; kondisi normal otomatis ditutup pada jadwal tiba. Catatan kendala mengharuskan tindak lanjut/konfirmasi tiba secara eksplisit. Catatan dan kedua formulir tetap tersimpan.
 
 Identitas travel diambil dari akun. Admin memiliki pencarian tiket pada ringkasan. Daftar tiket dilengkapi pencarian dan filter status, maskapai, rute keberangkatan. Form menyediakan dropdown maskapai/rute dengan opsi lainnya dan nama petugas sebanyak jumlah petugas. Dokumen menggunakan link folder Google Drive.
 
@@ -195,12 +195,16 @@ Memerlukan backend riau-portal-v3 dan migration 20261020120533_portal_operationa
 
 ## Detail tiket dan form perizinan — 20 Oktober 2026
 
-Tiket menampilkan halaman detail dengan kartu ringkasan, tahap perjalanan, penerbangan, tabel checklist, dokumen, identitas, tombol tindakan dan timeline. Tidak ada form yang dinonaktifkan pada tampilan awal. Edit tiket dan pemeriksaan Kanwil dibuka secara eksplisit; alasan koreksi serta rincian sebelum/sesudah terlihat pada riwayat. Travel dapat membuka kembali pengajuan sebelum keberangkatan dengan Perbaiki pengajuan. Tiket selesai dan data keberangkatan yang telah dikonfirmasi tetap terkunci.
+Tiket menampilkan halaman detail dengan kartu ringkasan, tahap perjalanan, penerbangan, tabel checklist, dokumen, identitas, tombol tindakan dan timeline. Tidak ada form yang dinonaktifkan pada tampilan awal. Edit tiket dan pemeriksaan Kanwil dibuka secara eksplisit; alasan koreksi serta rincian sebelum/sesudah terlihat pada riwayat. Travel dapat membuka kembali pengajuan sebelum keberangkatan dengan Perbaiki pengajuan. Tiket selesai dan data keberangkatan setelah waktu berangkat terkunci. Koreksi sebelum waktu berangkat membatalkan konfirmasi lama sehingga perlu dikonfirmasi lagi.
 
 Form perizinan disesuaikan dengan screenshot Google Form: bidang usaha, surat permohonan, notaris, Kemenkumham, SKDU, bank garansi dan contact person ditambahkan. Penanda wajib mengikuti screenshot, dengan berkas berupa satu folder Google Drive. Field administrasi tambahan ditempatkan di bagian opsional.
 
 Referensi desain: dashboard.haji.go.id (navigasi operasional) dan tampilan detail work item Jira Service Management (status, konteks, tindakan dan aktivitas). Validasi: 12 tes frontend, 71 tes backend, dan npm run build.
 
-### Papan monitoring perjalanan
+### Tabel perjalanan, jadwal dan riwayat
 
-Menu Perjalanan Jemaah menyediakan Papan tiket (default) dan Tabel. Satu kartu mewakili satu perjalanan/rombongan travel, bukan pendaftaran atau pembayaran per jemaah. Lima kolom mengikuti status perjalanan yang sudah ada; Draft dan Submitted masuk Keberangkatan dengan label berbeda. Klik kartu membuka detail dan tindakan sesuai role. Status diubah melalui tindakan terverifikasi, bukan drag-and-drop. Pencarian, filter, dan paginasi tetap berlaku; jumlah di kolom adalah jumlah pada halaman aktif, maksimal 25 tiket per halaman.
+Menu Perjalanan Jemaah hanya tabel dengan pencarian, filter status/maskapai/rute yang dapat dilipat, dan paginasi 25 tiket. Riwayat Perjalanan di sidebar Kanwil/travel berisi tiket CLOSED; tiap detail riwayat juga mencatat aktor dan perubahan. Detail aktif tidak memiliki tab pilihan keberangkatan/kepulangan/riwayat.
+
+Jam keberangkatan dan jam tiba wajib pada pengiriman, menggunakan WIB (UTC+7). Timer tampilan 30 detik memperbarui detail hanya di luar editor sehingga input belum tersimpan tidak ditimpa. Jadwal adalah acuan status, bukan data penerbangan langsung.
+
+Memerlukan backend riau-portal-v5-scheduled-journeys dan migration scheduled_journey_status. Uji terbatas pada fitur berubah: 31 tes API tiket, 5 tes rendering frontend, verifikasi transisi SQL dengan rollback, dan build.
