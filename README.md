@@ -188,6 +188,15 @@ Area akun: /admin (Kanwil), /kabkota, /travel (PPIU/PIHK), /kbihu. Halaman Profi
 
 Pengaduan dibagi Umrah/Haji Khusus/Haji Reguler. Umrah/Haji Khusus memilih travel terverifikasi dari dropdown atau mengisi travel tidak terdaftar secara manual. Haji Reguler tidak meminta data travel/paket. Direktori hanya menampilkan organisasi Riau yang izinnya telah diverifikasi dan aktif.
 
-Perizinan menyediakan form organisasi lengkap serta daftar/detail/review/revisi. Pencocokan persis dengan Google Form referensi belum selesai karena tautan meminta login. Manasik mempunyai laporan, link dokumen, pemeriksaan Kanwil dan perbaikan organisasi pemilik. Fikih/Manasik/Doa menampilkan materi sumber dan video serta chat privat dengan petugas Kanwil. Materi dan chat masuk dikelola dari dashboard Kanwil. Video call tetap melalui permintaan konsultasi dan Google Meet.
+Perizinan menyediakan form organisasi lengkap serta daftar/detail/review/revisi. Field perizinan mengikuti screenshot Google Form yang diberikan. Manasik mempunyai laporan, link dokumen, pemeriksaan Kanwil dan perbaikan organisasi pemilik. Fikih/Manasik/Doa menampilkan materi sumber dan video serta chat privat dengan petugas Kanwil. Materi dan chat masuk dikelola dari dashboard Kanwil. Video call tetap melalui permintaan konsultasi dan Google Meet.
 
 Memerlukan backend riau-portal-v3 dan migration 20261020120533_portal_operational_redesign.sql. Data direktori harus diverifikasi dari sumber izin resmi oleh Kanwil; data testing tidak diterbitkan sebagai penyelenggara berizin.
+
+
+## Detail tiket dan form perizinan — 20 Oktober 2026
+
+Tiket menampilkan halaman detail dengan kartu ringkasan, tahap perjalanan, penerbangan, tabel checklist, dokumen, identitas, tombol tindakan dan timeline. Tidak ada form yang dinonaktifkan pada tampilan awal. Edit tiket dan pemeriksaan Kanwil dibuka secara eksplisit; alasan koreksi serta rincian sebelum/sesudah terlihat pada riwayat. Travel dapat membuka kembali pengajuan sebelum keberangkatan dengan Perbaiki pengajuan. Tiket selesai dan data keberangkatan yang telah dikonfirmasi tetap terkunci.
+
+Form perizinan disesuaikan dengan screenshot Google Form: bidang usaha, surat permohonan, notaris, Kemenkumham, SKDU, bank garansi dan contact person ditambahkan. Penanda wajib mengikuti screenshot, dengan berkas berupa satu folder Google Drive. Field administrasi tambahan ditempatkan di bagian opsional.
+
+Referensi desain: dashboard.haji.go.id (navigasi operasional) dan tampilan detail work item Jira Service Management (status, konteks, tindakan dan aktivitas). Validasi: 12 tes frontend, 71 tes backend, dan npm run build.
