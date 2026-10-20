@@ -7,7 +7,7 @@ after(async()=>{if(server)await server.close()});
 const form={ppiu_name:'Testing Travel',ppiu_license_number:'TEST-001',ppiu_officer_name:'Testing Pimpinan',ppiu_address:'Testing Address',supervised_party:'Testing PPIU',airport:'Testing Bandara',flight_number:'TEST-FLIGHT-123',airline:'Testing Airline',route:'Testing Pekanbaru → Jeddah',flight_type:'DIRECT',travel_date:'2026-10-01',travel_time:'09:15',inspection_date:'2026-09-30',pilgrim_count:2000,officer_count:2,officer_names:['Testing Petugas 1','Uji coba Petugas 2'],items:[],drive_url:'https://drive.google.com/drive/folders/testing'};
 const ticket={id:'testing',reference:'TESTING-TICKET-001',journey_status:'DRAFT',form_data:form,return_form_data:{...form,return_notes:'Testing catatan kepulangan'},review_data:{},journey_history:[],created_at:'2026-10-01T00:00:00Z',updated_at:'2026-10-01T00:00:00Z'};
 test('default ticket detail contains readable records, documents and actions, without form controls in every state',()=>{
- for(const phase of ['DRAFT','SUBMITTED','DEPARTED','RETURNING','RETURN_NOTES','CLOSED'])for(const tab of ['departure','return','history']){
+ for(const phase of ['DRAFT','PENDING_REVIEW','SUBMITTED','DEPARTED','RETURNING','RETURN_NOTES','CLOSED'])for(const tab of ['departure','return','history']){
   const html=renderToStaticMarkup(React.createElement(MemoryRouter,null,React.createElement(View,{report:{...ticket,journey_status:phase},historyOnly:tab==='history',historyHref:'/admin/riwayat-perjalanan/testing',actions:React.createElement('button',{type:'button'},'Edit tiket')})));
   assert.ok(html.includes('Testing Travel'));assert.ok(html.includes('TESTING-TICKET-001'));assert.equal(html.includes('Edit tiket'),tab!=='history');assert.ok(!/<(?:form|input|select|textarea)\b/.test(html));
   if(tab==='departure'){assert.ok(html.includes('TEST-FLIGHT-123'));assert.ok(html.includes('Testing Petugas 1'));assert.ok(html.includes('2000'));assert.ok(html.includes('Buka folder Google Drive'));}
@@ -28,3 +28,4 @@ test('filters start collapsed and history has a separate heading',()=>{
 test('default detail combines departure and return without tab controls or activity timeline',()=>{
  const html=renderToStaticMarkup(React.createElement(MemoryRouter,null,React.createElement(View,{report:{...ticket,journey_status:'RETURNING'},historyHref:'/admin/riwayat-perjalanan/testing',actions:null})));assert.ok(html.includes('Keberangkatan'));assert.ok(html.includes('Kepulangan'));assert.ok(!html.includes('aria-label="Detail tiket"'));assert.ok(!html.includes('Aktivitas Terakhir'));assert.ok(html.includes('/admin/riwayat-perjalanan/testing'));
 });
+

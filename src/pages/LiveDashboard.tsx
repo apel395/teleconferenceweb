@@ -4,6 +4,7 @@ import {
   CalendarDays, CalendarPlus, Clock3, CheckCircle2, ClipboardCheck, ClipboardList, FileText, LayoutDashboard,
   LogOut, Menu, MessageSquare, Phone, RefreshCw, Users, Video, X
 } from 'lucide-react';
+import {AccessSettings,ModuleGate,RoleHome,StaffScope} from './AccessSettings';
 import { api, getUser } from '../lib/api';
 import { googleMeetUrl, legacyJitsiUrl } from '../lib/meeting';
 import { useAuth } from '../hooks/useAuth';
@@ -106,7 +107,9 @@ function isPelaporan(c: { topic?: string }): boolean {
 }
 
 /* ---------- Shell ---------- */
-function useRole(base: string): 'pengguna' | 'konsultan' | 'admin' | 'pengawas' | 'staff' | 'travel' | 'kabkota' | 'kbihu' {
+function useRole(base: string): 'operator' | 'petugas_haji' | 'pengguna' | 'konsultan' | 'admin' | 'pengawas' | 'staff' | 'travel' | 'kabkota' | 'kbihu' {
+  if (base === '/operator') return 'operator';
+  if (base === '/petugas-haji') return 'petugas_haji';
   if (base === '/konsultan') return 'konsultan';
   if (base === '/admin') return 'admin';
   if (base === '/pengawas') return 'pengawas';
@@ -126,7 +129,7 @@ export function DashboardShell({ base, children }: { base: string; children: Rea
     try { localStorage.setItem('kemenhaj-sidebar-collapsed', String(sidebarCollapsed)); } catch { /* Storage can be disabled. */ }
   }, [sidebarCollapsed]);
   const navigate = useNavigate();
-  const { user, logout: clearAuth } = useAuth();
+  const { user, can, logout: clearAuth } = useAuth();
   const role = useRole(base);
   const location = useLocation();
   const isAdmin = role === 'admin';
@@ -137,17 +140,21 @@ export function DashboardShell({ base, children }: { base: string; children: Rea
 
   const nav: { to: string; label: string; icon: React.ReactNode }[] = [];
   const add=(path:string,label:string,icon:React.ReactNode)=>nav.push({to:path?`${base}/${path}`:base,label,icon});
-  if(isAdmin||isCons||isSupervisor||role==='pengguna')add('','Ringkasan',<LayoutDashboard size={17}/>);
-  if(isAdmin||isTravel){add('tiket-perjalanan','Perjalanan Jemaah',<FileText size={17}/>);add('riwayat-perjalanan','Riwayat Perjalanan',<Clock3 size={17}/>);}
-  if(isAdmin)add('laporan-kloter','Pemulangan Haji Reguler',<FileText size={17}/>);
-  if(isAdmin||role==='kabkota'||role==='kbihu')add('manasik','Pelaporan Manasik',<FileText size={17}/>);
-  if(isAdmin||isTravel||role==='kbihu')add('perizinan','Pengajuan Perizinan',<ClipboardList size={17}/>);
-  if(isAdmin)add('pengaduan','Pengaduan Jemaah',<MessageSquare size={17}/>);
-  if(isAdmin||isSupervisor)add('pengawasan','Pengawasan',<ClipboardCheck size={17}/>);
-  if(isAdmin)add('jemaah','Data Jemaah',<Users size={17}/>);
-  if(isAdmin){add('materi','Materi Jemaah',<FileText size={17}/>);add('chat','Chat Jemaah',<MessageSquare size={17}/>);add('akun','Akun & Organisasi',<Users size={17}/>);}
+  add('','Ringkasan',<LayoutDashboard size={17}/>);
+  if(can('journeys')){add('tiket-perjalanan','Perjalanan Jemaah',<FileText size={17}/>);add('riwayat-perjalanan','Riwayat Perjalanan',<Clock3 size={17}/>);}
+  if(can('regular'))add('laporan-kloter','Pemulangan Haji Reguler',<FileText size={17}/>);
+  if(can('manasik'))add('manasik','Pelaporan Manasik',<FileText size={17}/>);
+  if(can('licenses'))add('perizinan','Pengajuan Perizinan',<ClipboardList size={17}/>);
+  if(can('complaints'))add('pengaduan','Pengaduan Jemaah',<MessageSquare size={17}/>);
+  if(can('supervision'))add('pengawasan','Pengawasan',<ClipboardCheck size={17}/>);
+  if(isAdmin&&can('manifests'))add('jemaah','Data Jemaah',<Users size={17}/>);
+  if(can('hajj_staff')&&role==='petugas_haji')add('penugasan','Penugasan & Jemaah',<Users size={17}/>);
+  if(can('materials'))add('materi','Materi Jemaah',<FileText size={17}/>);
+  if(can('chat'))add('chat','Chat Jemaah',<MessageSquare size={17}/>);
+  if(can('accounts'))add('akun','Akun & Organisasi',<Users size={17}/>);
+  if(can('settings'))add('pengaturan','Role & Hak Akses',<ClipboardCheck size={17}/>);
   add('profil','Profil & Identitas',<Users size={17}/>);
-  if(isAdmin||isCons||role==='pengguna')add('layanan-konsultasi','Konsultasi / Video Call',<Video size={17}/>);
+  if(can('consultations')&&(isAdmin||isCons||role==='pengguna'))add('layanan-konsultasi','Konsultasi / Video Call',<Video size={17}/>);
   add('kata-sandi','Kata Sandi Saya',<Users size={17}/>);
   const menuPath=location.pathname.replace(`${base}/laporan-umrah`,`${base}/tiket-perjalanan`).replace(`${base}/laporan-kloter`,`${base}/laporan-kloter`).replace(`${base}/izin-ppiu`,`${base}/perizinan`).replace(`${base}/pengajuan`,`${base}/perizinan`).replace(new RegExp(`^${base}/(?:konsultasi|penjadwalan|video|meeting)(?=/|$)`),`${base}/layanan-konsultasi`);
   const menuActive=(path:string)=>menuPath===path||(path!==base&&menuPath.startsWith(path+'/'));
@@ -895,76 +902,35 @@ function MeetingView({ base }: { base: string }) {
 }
 
 /* ---------- Router ---------- */
-export function LiveDashboard({ base }: { base: string }) {
-  const role = useRole(base);
-  const { user, isAuth } = useAuth();
-  const isStaff = role === 'admin' || role === 'konsultan';
-
-  if (!user || !isAuth) return <Navigate to="/masuk?sesi=berakhir" replace />;
-  if (isStaff && user.role !== role && user.role !== 'admin') return <AuthGuard />;
-  if (!isStaff && user.role !== role && !(role === 'staff' && user.role === 'admin')) return <Navigate to={dashboardFor(user.role)} replace/>;
-  if (role === 'staff' && user.role === 'admin') return <Navigate to="/admin/laporan-kloter" replace />;
-  if (role === 'admin' && user.role === 'admin') return (
-    <DashboardShell base={base}>
-      <Routes><Route path="profil" element={<ProfilePage/>}/><Route path="kata-sandi" element={<MyPasswordPage />} />
-        <Route path="" element={<KanwilOverview/>} />
-        <Route path="tiket-perjalanan" element={<UmrahTravelList key="active-journeys" base={base}/>}/><Route path="riwayat-perjalanan" element={<UmrahTravelList key="journey-history" base={base} history/>}/><Route path="riwayat-perjalanan/:id" element={<UmrahTravelForm key="journey-history-detail" base={base} historyOnly/>}/><Route path="manasik" element={<ManasikPage/>}/><Route path="materi" element={<KnowledgeAdmin/>}/><Route path="chat" element={<ChatAdmin/>}/><Route path="pengajuan" element={<Navigate to={`${base}/perizinan`} replace/>} />
-        <Route path="jemaah" element={<ManifestPage />} /><Route path="pelaporan" element={<Navigate to={`${base}/tiket-perjalanan`} replace/>} /><Route path="laporan-umrah" element={<UmrahTravelList base={base} />} /><Route path="laporan-umrah/baru" element={<UmrahTravelForm key="new" base={base} />} /><Route path="laporan-umrah/:id" element={<UmrahTravelForm key="edit" base={base} />} />
-        <Route path="pengaduan" element={<ComplaintList base={base} />} />
-        <Route path="pengaduan/:id" element={<ComplaintDetail base={base} />} />
-        <Route path="laporan-kloter" element={<OperationsDashboard base={base} kind="returns" />} />
-        <Route path="laporan-kloter/:id" element={<ReturnReportEditor base={base} />} />
-        <Route path="perizinan" element={<LicensingPage/>} /><Route path="izin-ppiu" element={<Navigate to={`${base}/perizinan`} replace/>} />
-        <Route path="penjadwalan" element={<SchedulingView base={base} />} />
-        <Route path="akun" element={<AccountsPage />} />
-        <Route path="pengawasan" element={<SupervisionList base={base} />} />
-        <Route path="pengawasan/baru" element={<SupervisionForm base={base} />} />
-        <Route path="pengawasan/:id" element={<SupervisionForm base={base} />} />
-        <Route path="layanan-konsultasi" element={<ConsultationHub base={base}/>} /><Route path="konsultasi" element={<ConsultationList base={base} />} />
-        <Route path="konsultasi/:id" element={<ConsultationDetail base={base} />} />
-        <Route path="meeting/:id" element={<MeetingView base={base} />} />
-        <Route path="video" element={<MeetingList base={base} />} />
-      </Routes>
-    </DashboardShell>
-  );
-  if(role==='staff'&&user.role==='staff')return <DashboardShell base={base}><Routes><Route path="profil" element={<ProfilePage/>}/><Route path="kata-sandi" element={<MyPasswordPage/>}/><Route path="*" element={<ProfilePage/>}/></Routes></DashboardShell>;
-  if (['travel','kabkota','kbihu'].includes(role)&&user.role===role)return <DashboardShell base={base}><Routes><Route path="profil" element={<ProfilePage/>}/><Route path="kata-sandi" element={<MyPasswordPage/>}/><Route path="" element={<Navigate to={`${base}/${role==='travel'?'tiket-perjalanan':'manasik'}`} replace/>}/>{role==='travel'&&<><Route path="tiket-perjalanan" element={<UmrahTravelList key="active-journeys" base={base}/>}/><Route path="riwayat-perjalanan" element={<UmrahTravelList key="journey-history" base={base} history/>}/><Route path="riwayat-perjalanan/:id" element={<UmrahTravelForm key="journey-history-detail" base={base} historyOnly/>}/><Route path="pelaporan" element={<Navigate to={`${base}/tiket-perjalanan`} replace/>}/><Route path="laporan-umrah" element={<Navigate to={`${base}/tiket-perjalanan`} replace/>}/><Route path="laporan-umrah/baru" element={<UmrahTravelForm key="new" base={base}/>}/><Route path="laporan-umrah/:id" element={<UmrahTravelForm key="edit" base={base}/>}/></>}{role!=='kabkota'&&<Route path="perizinan" element={<LicensingPage/>}/>} {role!=='travel'&&<Route path="manasik" element={<ManasikPage/>}/>}<Route path="*" element={<Navigate to={base} replace/>}/></Routes></DashboardShell>;
-  if (role === 'pengawas' && user.role === 'pengawas') return (
-    <DashboardShell base={base}>
-      <Routes><Route path="profil" element={<ProfilePage/>}/><Route path="kata-sandi" element={<MyPasswordPage />} />
-        <Route path="" element={<SupervisionList base={base}/>}/><Route path="pengawasan" element={<SupervisionList base={base} />} />
-        <Route path="pengawasan/baru" element={<SupervisionForm base={base} />} />
-        <Route path="pengawasan/:id" element={<SupervisionForm base={base} />} />
-      </Routes>
-    </DashboardShell>
-  );
-  if (role === 'konsultan' && user.role === 'admin') return <Navigate to={`${base.replace('konsultan', 'admin')}`} replace />;
-  if (role === 'konsultan' && user.role === 'konsultan') return (
-    <DashboardShell base={base}>
-      <Routes><Route path="profil" element={<ProfilePage/>}/><Route path="kata-sandi" element={<MyPasswordPage />} />
-        <Route path="" element={<Overview base={base} />} />
-        <Route path="penjadwalan" element={<SchedulingView base={base} />} />
-        <Route path="layanan-konsultasi" element={<ConsultationHub base={base}/>} /><Route path="konsultasi" element={<ConsultationList base={base} />} />
-        <Route path="konsultasi/:id" element={<ConsultationDetail base={base} />} />
-        <Route path="meeting/:id" element={<MeetingView base={base} />} />
-        <Route path="video" element={<MeetingList base={base} />} />
-      </Routes>
-    </DashboardShell>
-  );
-  if (role === 'pengguna' && user.role === 'admin') return <Navigate to="/admin" replace />;
-  if (role === 'pengguna' && user.role === 'konsultan') return <Navigate to="/konsultan" replace />;
-
-  return (
-    <DashboardShell base={base}>
-      <Routes><Route path="profil" element={<ProfilePage/>}/><Route path="kata-sandi" element={<MyPasswordPage />} />
-        <Route path="" element={<Overview base={base} />} />
-        <Route path="layanan-konsultasi" element={<ConsultationHub base={base}/>} /><Route path="konsultasi" element={<ConsultationList base={base} />} />
-        <Route path="konsultasi/:id" element={<ConsultationDetail base={base} />} />
-        <Route path="meeting/:id" element={<MeetingView base={base} />} />
-        <Route path="video" element={<MeetingList base={base} />} />
-      </Routes>
-    </DashboardShell>
-  );
+export function LiveDashboard({base}:{base:string}){
+ const role=useRole(base);const {user,isAuth,accessLoading,accessError,refreshAccess}=useAuth();
+ if(!user||!isAuth)return <Navigate to="/masuk?sesi=berakhir" replace/>;
+ if(accessLoading)return <main className="section"><p role="status">Memeriksa hak akses…</p></main>;
+ if(accessError)return <main className="section managed-form"><h1>Akses belum tersedia</h1><p role="alert">{accessError}</p><button className="btn primary" onClick={()=>void refreshAccess()}>Coba kembali</button><Link to="/masuk">Kembali ke halaman masuk</Link></main>;
+ if(user.role!==role)return <Navigate to={dashboardFor(user.role)} replace/>;
+ const gate=(module:string,element:React.ReactNode)=><ModuleGate module={module}>{element}</ModuleGate>;
+ return <DashboardShell key={`${user.id}:${user.role}:${user.company_id}:${user.access_version}`} base={base}><Routes>
+  <Route path="" element={role==='admin'?gate('overview',<KanwilOverview/>):role==='petugas_haji'?gate('hajj_staff',<StaffScope/>):<RoleHome/>}/>
+  <Route path="profil" element={<ProfilePage/>}/><Route path="kata-sandi" element={<MyPasswordPage/>}/>
+  <Route path="tiket-perjalanan" element={gate('journeys',<UmrahTravelList key="active-journeys" base={base}/>)}/>
+  <Route path="riwayat-perjalanan" element={gate('journeys',<UmrahTravelList key="journey-history" base={base} history/>)}/>
+  <Route path="riwayat-perjalanan/:id" element={gate('journeys',<UmrahTravelForm key="journey-history-detail" base={base} historyOnly/>)}/>
+  <Route path="laporan-umrah" element={<Navigate to={`${base}/tiket-perjalanan`} replace/>}/>
+  <Route path="laporan-umrah/baru" element={gate('journeys',<UmrahTravelForm key="new" base={base}/>)}/>
+  <Route path="laporan-umrah/:id" element={gate('journeys',<UmrahTravelForm key="edit" base={base}/>)}/>
+  <Route path="pengajuan" element={<Navigate to={`${base}/perizinan`} replace/>}/><Route path="pelaporan" element={<Navigate to={`${base}/tiket-perjalanan`} replace/>}/>
+  <Route path="perizinan" element={gate('licenses',<LicensingPage/>)}/><Route path="izin-ppiu" element={<Navigate to={`${base}/perizinan`} replace/>}/>
+  <Route path="manasik" element={gate('manasik',<ManasikPage/>)}/><Route path="jemaah" element={role==='admin'?gate('manifests',<ManifestPage/>):<RoleHome/>}/>
+  <Route path="penugasan" element={gate('hajj_staff',<StaffScope/>)}/>
+  <Route path="akun" element={role==='admin'?gate('accounts',<AccountsPage/>):<RoleHome/>}/>
+  <Route path="pengaturan" element={role==='admin'?gate('settings',<AccessSettings/>):<RoleHome/>}/>
+  <Route path="laporan-kloter" element={gate('regular',<OperationsDashboard base={base} kind="returns"/>)}/><Route path="laporan-kloter/:id" element={gate('regular',<ReturnReportEditor base={base}/>)}/>
+  <Route path="pengaduan" element={gate('complaints',<ComplaintList base={base}/>)}/><Route path="pengaduan/:id" element={gate('complaints',<ComplaintDetail base={base}/>)}/>
+  <Route path="materi" element={gate('materials',<KnowledgeAdmin/>)}/><Route path="chat" element={gate('chat',<ChatAdmin/>)}/>
+  <Route path="pengawasan" element={gate('supervision',<SupervisionList base={base}/>)}/><Route path="pengawasan/baru" element={gate('supervision',<SupervisionForm base={base}/>)}/><Route path="pengawasan/:id" element={gate('supervision',<SupervisionForm base={base}/>)}/>
+  <Route path="layanan-konsultasi" element={gate('consultations',<ConsultationHub base={base}/>)}/><Route path="konsultasi" element={gate('consultations',<ConsultationList base={base}/>)}/><Route path="konsultasi/:id" element={gate('consultations',<ConsultationDetail base={base}/>)}/><Route path="penjadwalan" element={gate('consultations',<SchedulingView base={base}/>)}/><Route path="meeting/:id" element={gate('consultations',<MeetingView base={base}/>)}/><Route path="video" element={gate('consultations',<MeetingList base={base}/>)}/>
+  <Route path="*" element={<Navigate to={base} replace/>}/>
+ </Routes></DashboardShell>;
 }
 
 function AuthGuard() {
@@ -981,3 +947,4 @@ function AuthGuard() {
   );
 }
 function LockIcon() { return <MessageSquare size={26} />; }
+

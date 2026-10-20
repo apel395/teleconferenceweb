@@ -23,4 +23,5 @@ export function formContinuation(path:string|null,role:string|undefined):string|
  return path&&role&&Object.hasOwn(destinations,path)&&destinations[path].includes(role)?path:null;
 }
 export function loginForForm(path:string){return '/masuk?lanjut='+encodeURIComponent(path)}
-export function registrationForForm(path:string){return '/daftar-travel?lanjut='+encodeURIComponent(path)}
+export function registrationForForm(_path:string){return '/hubungi-admin'}
+

@@ -4,8 +4,9 @@ export type User = {
   id: string;
   email: string;
   name: string;
-  role: 'admin' | 'kabkota' | 'kbihu' | 'staff' | 'travel' | 'konsultan' | 'pengguna' | 'pengawas';
+  role: 'admin' | 'operator' | 'petugas_haji' | 'kabkota' | 'kbihu' | 'staff' | 'travel' | 'konsultan' | 'pengguna' | 'pengawas';
   company_id?: string | null;
+  access_version?:number; account_provisioned?:boolean;
   phone?:string;address?:string;position?:string;employee_number?:string;
 };
 
@@ -123,8 +124,10 @@ export async function api<T = unknown>(
     if (res.status === 401 && token && path !== '/auth/login') {
       expireSession(token);
     }
+    if (res.status === 403 && token) window.dispatchEvent(new Event('kemenhaj-access-denied'));
     throw new Error((data as { error?: string }).error || 'Terjadi kesalahan');
   }
 
   return data as T;
 }
+
