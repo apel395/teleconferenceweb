@@ -17,7 +17,7 @@ async function scenario(role,phase='PENDING_REVIEW',mobile=false){
  await context.addInitScript(({user})=>{localStorage.setItem('kemenhaj-token','e30.'+btoa(JSON.stringify({exp:Math.floor(Date.now()/1000)+86400}))+'.testing');localStorage.setItem('kemenhaj-user',JSON.stringify(user));},{user});
  await context.route('**/api/**',async route=>{
   const request=route.request(),path=new URL(request.url()).pathname.slice(4),method=request.method();let body;try{body=request.postDataJSON();}catch{}
-  calls.push({path,method,body});let result={},status=200;
+  calls.push({path,method,body});if(method!=='GET')console.log('TEST MUTATION',role,method,path);let result={},status=200;
   if(path==='/auth/me')result={user};
   else if(path==='/settings/access/me')result={role,company_id:org.id,modules,access_version:1};
   else if(path==='/settings/contact')result={contact:{name:'Testing Admin',phone:'6281234567890',email:'testing@example.org',hours:'Testing hours',whatsapp_url:'https://wa.me/6281234567890',configured:true}};
@@ -64,4 +64,4 @@ async function run(){
  const p=await scenario('petugas_haji');await p.page.goto(base+'/petugas-haji/penugasan');await p.page.getByRole('heading',{name:'Penugasan Petugas Haji'}).waitFor();assert.equal(await p.page.getByRole('link',{name:'Perjalanan Jemaah',exact:true}).count(),0);assert.equal(p.errors.length,0);await p.context.close();
  console.log('PASS: operator review/departure, admin restrictions/settings/accounts, travel mobile identity/submission, signup/contact and staff isolation.');
 }
-run().catch(e=>{console.error(e);process.exitCode=1;}).finally(async()=>{if(browser)await browser.close();server.kill('SIGTERM');});
+run().catch(async e=>{console.error(e);if(browser)for(const context of browser.contexts())for(const page of context.pages()){console.error('FAILURE PAGE',page.url(),await page.locator('body').innerText().catch(()=>''));console.error('BROWSER DAY',await page.evaluate(()=>new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Jakarta'})),'FIXTURE DAY',today);}process.exitCode=1;}).finally(async()=>{if(browser)await browser.close();server.kill('SIGTERM');});
