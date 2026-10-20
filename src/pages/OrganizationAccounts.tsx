@@ -1,4 +1,5 @@
 import {useEffect,useState} from 'react';
+import {jakartaDay} from '../lib/flights';
 import {api} from '../lib/api';
 import {useAuth} from '../hooks/useAuth';
 import {ActionFeedback} from './UmrahTravelPages';
@@ -26,6 +27,6 @@ export function OrganizationAccounts(){
 }
 
 
-function travelReady(o:Organization){return /^\d{13}$/.test(o.nib||'')&&o.license_status==='VERIFIED'&&Boolean(o.license_number&&o.license_source)&&(!o.license_valid_until||o.license_valid_until>=new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Jakarta'}));}
+function travelReady(o:Organization){return /^\d{13}$/.test(o.nib||'')&&o.license_status==='VERIFIED'&&Boolean(o.license_number&&o.license_source)&&(!o.license_valid_until||o.license_valid_until>=jakartaDay());}
 function AccountStatus({account,self,save}:{account:Account;self:boolean;save:(reason:string)=>Promise<void>}){const [reason,setReason]=useState(''),[busy,setBusy]=useState(false);return <details><summary>Status akun: {account.account_provisioned?'Aktif':'Nonaktif'}</summary><form onSubmit={async e=>{e.preventDefault();setBusy(true);try{await save(reason);}finally{setBusy(false);}}}><label>Alasan perubahan status *<input required maxLength={1000} value={reason} onChange={e=>setReason(e.target.value)}/></label><button className="btn light" disabled={busy||self}>{account.account_provisioned?'Nonaktifkan akun':'Aktifkan akun'}</button></form></details>;}
 function IdentityEditor({org,save}:{org:Organization;save:(data:unknown)=>Promise<void>}){const [form,setForm]=useState({name:org.name,nib:org.nib||'',office_address:org.office_address||'',public_phone:org.public_phone||''}),[busy,setBusy]=useState(false);return <form onSubmit={async e=>{e.preventDefault();setBusy(true);try{await save(form);}finally{setBusy(false);}}}><fieldset disabled={busy}>{(['name','nib','office_address','public_phone'] as const).map((key,i)=><label key={key}>{['Nama organisasi','NIB','Alamat kantor','Telepon publik'][i]}<input required={key==='name'||key==='office_address'||key==='nib'&&['PPIU','PIHK','KBIHU'].includes(org.organization_type)} pattern={key==='nib'&&['PPIU','PIHK','KBIHU'].includes(org.organization_type)?'[0-9]{13}':undefined} maxLength={key==='nib'?13:1000} value={form[key]} onChange={e=>setForm({...form,[key]:e.target.value})}/></label>)}<button className="btn primary">Simpan identitas organisasi</button></fieldset></form>;}

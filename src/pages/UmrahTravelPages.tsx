@@ -6,7 +6,7 @@ import allChecklist from '../lib/airportChecklist.json';
 import { useFormDraft } from '../hooks/useFormDraft';
 import JourneyTicketView from './JourneyTicketView';
 import { loginForForm } from '../lib/formDraft';
-import {canonicalFlights,type FlightSegment} from '../lib/flights';
+import {canonicalFlights,jakartaDay,type FlightSegment} from '../lib/flights';
 import {FlightSegmentsEditor} from '../components/FlightSegmentsEditor';
 const root='/operations/umrah-travel';
 type Kind='DEPARTURE'|'RETURN';
@@ -22,7 +22,7 @@ const filters={DRAFT:'Draft',PENDING_REVIEW:'Menunggu Pemeriksaan',SUBMITTED:'Si
 const returnPhases:Phase[]=['DEPARTED','RETURNING','RETURN_NOTES'];
 const returnGuidance={code:'RET-01',section:'IV. Pengawasan Bimbingan',indicator:'Jemaah telah menerima sosialisasi/edukasi persiapan kepulangan Umrah dari PPIU.',evidence:'Wawancara jemaah/petugas'};
 const checklist=(kind:Kind)=>kind==='RETURN'?[...allChecklist.filter(x=>x.code!=='DOC-05'&&!x.code.startsWith('BIM-')),returnGuidance]:allChecklist.filter(x=>x.code!=='DOC-05');
-const today=()=>new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Jakarta'});
+const today=jakartaDay;
 const makeForm=(kind:Kind,source?:Form):Form=>({airport:'',inspection_date:today(),ppiu_name:source?.ppiu_name||'',ppiu_license_number:source?.ppiu_license_number||'',ppiu_address:source?.ppiu_address||'',ppiu_officer_name:source?.ppiu_officer_name||'',supervised_party:source?.supervised_party||'',flight_number:'',airline:'',route:'',flight_type:'',travel_date:'',travel_time:'',pilgrim_count:source?.pilgrim_count??'',officer_count:source?.officer_count??'',officer_names:source?.officer_names||[],findings:'',return_notes:'',journey_type:source?.journey_type||'UMRAH',drive_url:'',items:checklist(kind).map(x=>({code:x.code,result:null,notes:''}))});
 const hydrate=(value:Partial<Form>,kind:Kind):Form=>({...makeForm(kind),...value,officer_names:Array.isArray(value.officer_names)?value.officer_names:[],items:checklist(kind).map(x=>value.items?.find(i=>i.code===x.code)||{code:x.code,result:null,notes:''})});
 const makeReview=(value:Partial<Review>={},party=''):Review=>({notes:'',supervisor_1:'',supervisor_2:'',supervised_party:party,...value,verification_items:checklist('DEPARTURE').map(x=>value.verification_items?.find(i=>i.code===x.code)||{code:x.code,result:null})});

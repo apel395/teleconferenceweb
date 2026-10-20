@@ -14,3 +14,5 @@ export function flightInstant(value:string,zone:string):string{
  return new Date(guess).toISOString();
 }
 export function canonicalFlights(segments:FlightSegment[]=[]):FlightSegment[]{return segments.map(s=>({...s,from:s.from.trim().toUpperCase(),to:s.to.trim().toUpperCase(),from_country:s.from_country.trim().toUpperCase(),to_country:s.to_country.trim().toUpperCase(),departure_at:flightInstant(s.departure_at,s.departure_timezone),arrival_at:flightInstant(s.arrival_at,s.arrival_timezone)}));}
+
+export function jakartaDay(date=new Date()):string{const p=Object.fromEntries(new Intl.DateTimeFormat('en',{timeZone:'Asia/Jakarta',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(date).map(part=>[part.type,part.value]));return `${p.year}-${p.month}-${p.day}`;}
