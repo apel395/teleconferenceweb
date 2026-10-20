@@ -208,3 +208,9 @@ Menu Perjalanan Jemaah hanya tabel dengan pencarian, filter status/maskapai/rute
 Jam keberangkatan dan jam tiba wajib pada pengiriman, menggunakan WIB (UTC+7). Timer tampilan 30 detik memperbarui detail hanya di luar editor sehingga input belum tersimpan tidak ditimpa. Jadwal adalah acuan status, bukan data penerbangan langsung.
 
 Memerlukan backend riau-portal-v5-scheduled-journeys dan migration scheduled_journey_status. Uji terbatas pada fitur berubah: 31 tes API tiket, 5 tes rendering frontend, verifikasi transisi SQL dengan rollback, dan build.
+
+## Ringkasan Monitoring Kanwil — 20 Oktober 2026
+
+Ringkasan /admin memakai pola dashboard.haji.go.id: filter ringkas, total jemaah besar, grafik maskapai, rekap PPIU/PIHK berdampingan, seri bulanan, dan distribusi status tiket. Data berasal dari aplikasi Riau. Filter utama tahun/jenis/travel, filter lanjutan maskapai/bandara/rute/rentang tanggal dapat dilipat, diterapkan lewat tombol Terapkan dan disimpan di URL. Tombol reset, refresh manual, pembaruan tiap menit saat tab terlihat, pencarian tiket, dan pencarian/paginasi rekap travel tersedia.
+
+Grafik dan tabel memiliki label nilai dan data bulanan dapat dibuka sebagai tabel. Ringkasan tindak lanjut layanan diberi label seluruh periode dan tidak mengikuti filter perjalanan. Form/peran lain tetap seperti semula; statistik Kanwil tidak dibuka untuk publik atau akun organisasi lain. Memerlukan backend riau-portal-v6-monitoring-dashboard dan migration kanwil_monitoring_dashboard. Validasi perubahan hanya dashboard: 5 tes API, 4 tes rendering, SQL >1100 tiket dengan rollback, dan build.

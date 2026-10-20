@@ -5,12 +5,7 @@ import {useAuth} from '../hooks/useAuth';
 import {ActionFeedback} from './UmrahTravelPages';
 export const roleNames:Record<string,string>={admin:'Admin Kanwil',kabkota:'Admin Kemenhaj Kabupaten/Kota',travel:'Admin Travel PPIU/PIHK',kbihu:'Admin KBIHU',staff:'Staf (lama)',pengawas:'Pengawas',konsultan:'Konsultan',pengguna:'Jemaah'};
 export const dashboardFor=(role?:string)=>role==='admin'?'/admin':role==='travel'?'/travel':role==='kbihu'?'/kbihu':role==='kabkota'?'/kabkota':role==='staff'?'/staff':role==='pengawas'?'/pengawas':role==='konsultan'?'/konsultan':'/dashboard';
-export function KanwilOverview(){
- const [stats,setStats]=useState<Record<string,number>>({}),[error,setError]=useState(''),[q,setQ]=useState('');
- useEffect(()=>{let active=true;api<{summary:Record<string,number>}>('/portal/summary').then(d=>{if(active)setStats(d.summary)}).catch(e=>{if(active)setError((e as Error).message)});return()=>{active=false}},[]);
- const cards=[['tickets','Seluruh Tiket Perjalanan','tiket-perjalanan'],['departure','Keberangkatan Perlu Diperiksa','tiket-perjalanan?phase=SUBMITTED'],['returning','Perjalanan / Kepulangan Berjalan','tiket-perjalanan'],['licenses','Pengajuan Perizinan','perizinan'],['complaints','Pengaduan Perlu Ditangani','pengaduan'],['manasik','Laporan Manasik Masuk','manasik'],['chats','Percakapan Jemaah Terbuka','chat']];
- return <div className="managed-form"><h1>Dashboard Admin Kanwil</h1><p>Monitoring perjalanan jemaah dan tindak lanjut layanan Provinsi Riau.</p>{error&&<p role="alert">{error}</p>}<form className="dash-panel" action="/admin/tiket-perjalanan"><label>Cari tiket perjalanan<input type="search" name="q" value={q} maxLength={120} onChange={e=>setQ(e.target.value)} placeholder="Nomor tiket, travel, maskapai atau rute"/></label><button className="btn primary">Cari tiket</button></form><div className="form-grid">{cards.map(([key,label,path])=><Link className="dash-panel spaced-panel" key={key} to={'/admin/'+path}><h2>{stats[key]??'…'}</h2><p>{label}</p></Link>)}</div></div>;
-}
+export {default as KanwilOverview} from './MonitoringDashboard';
 export type Organization={id:string;name:string;organization_type:string;nib:string;office_address:string;region:string;public_phone:string;license_status:string;license_number:string;license_valid_until:string;license_source:string};
 type TextForm=Record<string,string>;
 type Material={id:string;category:string;title:string;body:string;source_url:string;video_url:string;published?:boolean};
