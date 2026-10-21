@@ -10,7 +10,8 @@ import { googleMeetUrl, legacyJitsiUrl } from '../lib/meeting';
 import { useAuth } from '../hooks/useAuth';
 import { SupervisionForm, SupervisionList } from './SupervisionPages';
 import { OperationsDashboard, ReturnReportEditor } from './OperationsPages';
-import ManifestPage from './ManifestPage';
+import PilgrimDataPage from './PilgrimDataPage';
+import HajjStaffPage,{ConditionsPage} from './HajjStaffPage';
 import { UmrahTravelList, UmrahTravelForm } from './UmrahTravelPages';
 import { ComplaintList, ComplaintDetail } from './ComplaintPages';
 import {KanwilOverview,ProfilePage,LicensingPage,ManasikPage,KnowledgeAdmin,ChatAdmin,roleNames,dashboardFor} from './PortalPages';
@@ -147,8 +148,8 @@ export function DashboardShell({ base, children }: { base: string; children: Rea
   if(can('licenses'))add('perizinan','Pengajuan Perizinan',<ClipboardList size={17}/>);
   if(can('complaints'))add('pengaduan','Pengaduan Jemaah',<MessageSquare size={17}/>);
   if(can('supervision'))add('pengawasan','Pengawasan',<ClipboardCheck size={17}/>);
-  if(isAdmin&&can('manifests'))add('jemaah','Data Jemaah',<Users size={17}/>);
-  if(can('hajj_staff')&&role==='petugas_haji')add('penugasan','Penugasan & Jemaah',<Users size={17}/>);
+  if(can('manifests'))add('jemaah','Data Jemaah',<Users size={17}/>);
+  if(can('hajj_staff')){if(role==='admin'||role==='petugas_haji')add('penugasan',role==='admin'?'Petugas & Penugasan':'Penugasan & Jemaah',<Users size={17}/>);add('kondisi-jemaah','Kondisi Jemaah',<Users size={17}/>);}
   if(can('materials'))add('materi','Materi Jemaah',<FileText size={17}/>);
   if(can('chat'))add('chat','Chat Jemaah',<MessageSquare size={17}/>);
   if(can('accounts'))add('akun','Akun & Organisasi',<Users size={17}/>);
@@ -920,8 +921,8 @@ export function LiveDashboard({base}:{base:string}){
   <Route path="laporan-umrah/:id" element={gate('journeys',<UmrahTravelForm key="edit" base={base}/>)}/>
   <Route path="pengajuan" element={<Navigate to={`${base}/perizinan`} replace/>}/><Route path="pelaporan" element={<Navigate to={`${base}/tiket-perjalanan`} replace/>}/>
   <Route path="perizinan" element={gate('licenses',<LicensingPage/>)}/><Route path="izin-ppiu" element={<Navigate to={`${base}/perizinan`} replace/>}/>
-  <Route path="manasik" element={gate('manasik',<ManasikPage/>)}/><Route path="jemaah" element={role==='admin'?gate('manifests',<ManifestPage/>):<RoleHome/>}/>
-  <Route path="penugasan" element={gate('hajj_staff',<StaffScope/>)}/>
+  <Route path="manasik" element={gate('manasik',<ManasikPage/>)}/><Route path="jemaah" element={gate('manifests',<PilgrimDataPage/>)}/>
+  <Route path="penugasan" element={gate('hajj_staff',role==='operator'?<RoleHome/>:<HajjStaffPage/>)}/><Route path="kondisi-jemaah" element={gate('hajj_staff',<ConditionsPage/>)}/>
   <Route path="akun" element={role==='admin'?gate('accounts',<AccountsPage/>):<RoleHome/>}/>
   <Route path="pengaturan" element={role==='admin'?gate('settings',<AccessSettings/>):<RoleHome/>}/>
   <Route path="laporan-kloter" element={gate('regular',<OperationsDashboard base={base} kind="returns"/>)}/><Route path="laporan-kloter/:id" element={gate('regular',<ReturnReportEditor base={base}/>)}/>
@@ -947,4 +948,5 @@ function AuthGuard() {
   );
 }
 function LockIcon() { return <MessageSquare size={26} />; }
+
 

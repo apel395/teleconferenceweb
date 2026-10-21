@@ -214,3 +214,9 @@ Memerlukan backend riau-portal-v5-scheduled-journeys dan migration scheduled_jou
 Ringkasan /admin memakai pola dashboard.haji.go.id: filter ringkas, total jemaah besar, grafik maskapai, rekap PPIU/PIHK berdampingan, seri bulanan, dan distribusi status tiket. Data berasal dari aplikasi Riau. Filter utama tahun/jenis/travel, filter lanjutan maskapai/bandara/rute/rentang tanggal dapat dilipat, diterapkan lewat tombol Terapkan dan disimpan di URL. Tombol reset, refresh manual, pembaruan tiap menit saat tab terlihat, pencarian tiket, dan pencarian/paginasi rekap travel tersedia.
 
 Grafik dan tabel memiliki label nilai dan data bulanan dapat dibuka sebagai tabel. Ringkasan tindak lanjut layanan diberi label seluruh periode dan tidak mengikuti filter perjalanan. Form/peran lain tetap seperti semula; statistik Kanwil tidak dibuka untuk publik atau akun organisasi lain. Memerlukan backend riau-portal-v6-monitoring-dashboard dan migration kanwil_monitoring_dashboard. Validasi perubahan hanya dashboard: 5 tes API, 4 tes rendering, SQL >1100 tiket dengan rollback, dan build.
+
+
+
+## Frontend items 4–6
+
+Data jemaah / manifest tiga tahap, pengajuan perubahan dan review Kanwil, penugasan petugas, laporan kondisi, manasik multisesi, serta perizinan lengkap tersedia pada dashboard sesuai hak akses. Lihat [release notes](docs/RELEASE-PILGRIMS-STAFF-MANASIK.md) untuk alur, kompatibilitas data sumber lama, dan validasi.

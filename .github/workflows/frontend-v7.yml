@@ -25,4 +25,7 @@ jobs:
       - name: Updated feature browser flows
         env:
           NODE_PATH: /tmp/kemenhaj-browser/node_modules
-        run: node test/browser-smoke.cjs
+        run: |
+          node test/browser-smoke.cjs
+          node test/browser-operations.cjs
+
