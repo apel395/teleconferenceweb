@@ -1,0 +1,28 @@
+name: Frontend v7 access and journeys
+on:
+  push:
+    branches: [feature/riau-frontend-v7, main]
+  pull_request:
+    paths: ['src/**', 'test/**', 'package*.json', '.github/workflows/frontend-v7.yml']
+permissions:
+  contents: read
+jobs:
+  features:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npm run build
+      - run: node --test --test-concurrency=1 test/*.test.cjs
+      - name: Install isolated browser test dependency
+        run: npm install --prefix /tmp/kemenhaj-browser --ignore-scripts --no-audit --no-fund playwright@1.62.1
+      - run: /tmp/kemenhaj-browser/node_modules/.bin/playwright install --with-deps chromium
+      - name: Updated feature browser flows
+        env:
+          NODE_PATH: /tmp/kemenhaj-browser/node_modules
+        run: node test/browser-smoke.cjs
