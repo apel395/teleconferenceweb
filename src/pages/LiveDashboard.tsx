@@ -1,3 +1,4 @@
+import {TravelRequestAdmin} from './TravelAccountRequest';
 import RoleDashboard from './RoleDashboard';
 import {NotificationBell,NotificationsPage} from '../components/Notifications';
 import { useEffect, useState } from 'react';
@@ -147,6 +148,7 @@ export function DashboardShell({ base, children }: { base: string; children: Rea
   if(can('journeys')){add('tiket-perjalanan','Perjalanan Jemaah',<FileText size={17}/>);add('riwayat-perjalanan','Riwayat Perjalanan',<Clock3 size={17}/>);}
   if(can('regular'))add('laporan-kloter','Pemulangan Haji Reguler',<FileText size={17}/>);
   if(can('manasik'))add('manasik','Pelaporan Manasik',<FileText size={17}/>);
+  if(can('licenses')&&['admin','operator'].includes(role))add('pengajuan-akun-travel','Pengajuan Akun Travel',<ClipboardList size={17}/>);
   if(can('licenses'))add('perizinan','Pengajuan Perizinan',<ClipboardList size={17}/>);
   if(can('complaints'))add('pengaduan','Pengaduan Jemaah',<MessageSquare size={17}/>);
   if(can('supervision'))add('pengawasan','Pengawasan',<ClipboardCheck size={17}/>);
@@ -923,7 +925,7 @@ export function LiveDashboard({base}:{base:string}){
   <Route path="laporan-umrah/baru" element={gate('journeys',<UmrahTravelForm key="new" base={base}/>)}/>
   <Route path="laporan-umrah/:id" element={gate('journeys',<UmrahTravelForm key="edit" base={base}/>)}/>
   <Route path="pengajuan" element={<Navigate to={`${base}/perizinan`} replace/>}/><Route path="pelaporan" element={<Navigate to={`${base}/tiket-perjalanan`} replace/>}/>
-  <Route path="perizinan" element={gate('licenses',<LicensingPage/>)}/><Route path="izin-ppiu" element={<Navigate to={`${base}/perizinan`} replace/>}/>
+  <Route path="pengajuan-akun-travel" element={gate('licenses',['admin','operator'].includes(role)?<TravelRequestAdmin base={base}/>:<Navigate to={base} replace/>)}/><Route path="perizinan" element={gate('licenses',<LicensingPage/>)}/><Route path="izin-ppiu" element={<Navigate to={`${base}/perizinan`} replace/>}/>
   <Route path="manasik" element={gate('manasik',<ManasikPage/>)}/><Route path="jemaah" element={gate('manifests',<PilgrimDataPage/>)}/>
   <Route path="penugasan" element={gate('hajj_staff',role==='operator'?<RoleHome/>:<HajjStaffPage/>)}/><Route path="kondisi-jemaah" element={gate('hajj_staff',<ConditionsPage/>)}/>
   <Route path="akun" element={role==='admin'?gate('accounts',<AccountsPage/>):<RoleHome/>}/>
