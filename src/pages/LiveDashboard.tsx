@@ -1,3 +1,5 @@
+import RoleDashboard from './RoleDashboard';
+import {NotificationBell,NotificationsPage} from '../components/Notifications';
 import { useEffect, useState } from 'react';
 import { Link, Navigate, NavLink, Route, Routes, useNavigate, useParams, useLocation, useSearchParams } from 'react-router-dom';
 import {
@@ -154,6 +156,7 @@ export function DashboardShell({ base, children }: { base: string; children: Rea
   if(can('chat'))add('chat','Chat Jemaah',<MessageSquare size={17}/>);
   if(can('accounts'))add('akun','Akun & Organisasi',<Users size={17}/>);
   if(can('settings'))add('pengaturan','Role & Hak Akses',<ClipboardCheck size={17}/>);
+  add('notifikasi','Notifikasi',<MessageSquare size={17}/>);
   add('profil','Profil & Identitas',<Users size={17}/>);
   if(can('consultations')&&(isAdmin||isCons||role==='pengguna'))add('layanan-konsultasi','Konsultasi / Video Call',<Video size={17}/>);
   add('kata-sandi','Kata Sandi Saya',<Users size={17}/>);
@@ -200,7 +203,7 @@ export function DashboardShell({ base, children }: { base: string; children: Rea
             <h1>{[...nav].sort((a,b)=>b.to.length-a.to.length).find(n=>menuActive(n.to))?.label || nav[0]?.label}</h1>
             <p>{today}</p>
           </div>
-          <div className="dash-top-actions">
+          <div className="dash-top-actions"><NotificationBell base={base}/>
             <span className="dash-date">{roleLabel}</span>
             <span className="dash-avatar">{initials(user?.name || '?')}</span>
           </div>
@@ -904,15 +907,15 @@ function MeetingView({ base }: { base: string }) {
 
 /* ---------- Router ---------- */
 export function LiveDashboard({base}:{base:string}){
- const role=useRole(base);const {user,isAuth,accessLoading,accessError,refreshAccess}=useAuth();
+ const role=useRole(base);const {user,isAuth,accessLoading,accessError,refreshAccess,scopeKey}=useAuth();
  if(!user||!isAuth)return <Navigate to="/masuk?sesi=berakhir" replace/>;
  if(accessLoading)return <main className="section"><p role="status">Memeriksa hak akses…</p></main>;
  if(accessError)return <main className="section managed-form"><h1>Akses belum tersedia</h1><p role="alert">{accessError}</p><button className="btn primary" onClick={()=>void refreshAccess()}>Coba kembali</button><Link to="/masuk">Kembali ke halaman masuk</Link></main>;
  if(user.role!==role)return <Navigate to={dashboardFor(user.role)} replace/>;
  const gate=(module:string,element:React.ReactNode)=><ModuleGate module={module}>{element}</ModuleGate>;
- return <DashboardShell key={`${user.id}:${user.role}:${user.company_id}:${user.access_version}`} base={base}><Routes>
-  <Route path="" element={role==='admin'?gate('overview',<KanwilOverview/>):role==='petugas_haji'?gate('hajj_staff',<StaffScope/>):<RoleHome/>}/>
-  <Route path="profil" element={<ProfilePage/>}/><Route path="kata-sandi" element={<MyPasswordPage/>}/>
+ return <DashboardShell key={`${user.id}:${user.role}:${user.company_id}:${user.access_version}:${scopeKey}`} base={base}><Routes>
+  <Route path="" element={gate('overview',<RoleDashboard base={base}/>)}/>
+  <Route path="notifikasi" element={<NotificationsPage base={base}/>}/><Route path="profil" element={<ProfilePage/>}/><Route path="kata-sandi" element={<MyPasswordPage/>}/>
   <Route path="tiket-perjalanan" element={gate('journeys',<UmrahTravelList key="active-journeys" base={base}/>)}/>
   <Route path="riwayat-perjalanan" element={gate('journeys',<UmrahTravelList key="journey-history" base={base} history/>)}/>
   <Route path="riwayat-perjalanan/:id" element={gate('journeys',<UmrahTravelForm key="journey-history-detail" base={base} historyOnly/>)}/>

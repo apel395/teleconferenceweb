@@ -28,4 +28,5 @@ jobs:
         run: |
           node test/browser-smoke.cjs
           node test/browser-operations.cjs
+          node test/browser-public-workspace.cjs
 
