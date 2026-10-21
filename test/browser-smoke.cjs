@@ -19,7 +19,8 @@ async function scenario(role,phase='PENDING_REVIEW',mobile=false){
   const request=route.request(),path=new URL(request.url()).pathname.slice(4),method=request.method();let body;try{body=request.postDataJSON();}catch{}
   calls.push({path,method,body});if(method!=='GET')console.log('TEST MUTATION',role,method,path);let result={},status=200;
   if(path==='/auth/me')result={user};
-  else if(path==='/settings/access/me')result={role,company_id:org.id,modules,access_version:1};
+  else if(path==='/settings/access/me')result={user,role,company_id:org.id,modules,access_version:1,cache:{scope_key:role+':'+user.id,revision:1,max_age_seconds:30,server_time:new Date().toISOString()}};
+  else if(path==='/workspace/notifications')result={notifications:[]};
   else if(path==='/settings/contact')result={contact:{name:'Testing Admin',phone:'6281234567890',email:'testing@example.org',hours:'Testing hours',whatsapp_url:'https://wa.me/6281234567890',configured:true}};
   else if(path==='/settings/admin/contact')result={setting:{version:1,value:{name:'Testing Admin',phone:'6281234567890',email:'testing@example.org',hours:'Testing hours'}}};
   else if(path==='/settings/admin/roles')result={roles:[{role:'travel',modules:['journeys','licenses'],version:1}],bounds:{travel:['journeys','licenses']},labels:{travel:'Admin Travel PPIU/PIHK'},locked:{}};

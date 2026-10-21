@@ -220,3 +220,8 @@ Grafik dan tabel memiliki label nilai dan data bulanan dapat dibuka sebagai tabe
 ## Frontend items 4–6
 
 Data jemaah / manifest tiga tahap, pengajuan perubahan dan review Kanwil, penugasan petugas, laporan kondisi, manasik multisesi, serta perizinan lengkap tersedia pada dashboard sesuai hak akses. Lihat [release notes](docs/RELEASE-PILGRIMS-STAFF-MANASIK.md) untuk alur, kompatibilitas data sumber lama, dan validasi.
+
+
+## Public services and role workspace (items 7–10)
+
+Complaint response history, guest/Kanwil chat, FAQ/help/content publishing, porsi lookup, scoped session-memory cache, notifications and per-role dashboards are integrated. See [release notes](docs/RELEASE-PUBLIC-WORKSPACE.md) for behavior, limits and validation. Kanwil still supplies the actual published materials and admin contact; no religious content or account data is invented.

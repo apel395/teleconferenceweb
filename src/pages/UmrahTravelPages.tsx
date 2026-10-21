@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, Navigate, useNavigate, useParams, useLocation, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { api } from '../lib/api';
+import { api,invalidateApiCache } from '../lib/api';
 import allChecklist from '../lib/airportChecklist.json';
 import { useFormDraft } from '../hooks/useFormDraft';
 import JourneyTicketView from './JourneyTicketView';
