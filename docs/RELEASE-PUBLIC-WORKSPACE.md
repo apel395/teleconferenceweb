@@ -9,6 +9,6 @@
 - Auth/profile/grants/cache metadata refresh is one production API request, with compatibility fallback for the prior API. Polling pauses in hidden tabs. Cache remains off if server context cannot be validated.
 - Notifications show server-scoped records and read receipts. The badge counts unread items among the latest 50, rather than claiming a global unread count. Notification links are local allowlisted resource routes.
 - All role dashboards read `/workspace/dashboard`, honor individual grants and backend organization/kloter scope, show actual empty states, manifest comparisons, and separate attendance from unique pilgrims. Kanwil can expand the existing detailed journey monitoring.
-- Dashboard code is lazy-loaded to reduce the public initial bundle. No schema changes or production data reset is needed.
+- Dashboard code is lazy-loaded to reduce the public initial bundle. Before release, apply backend migration `20261021074122_dashboard_manifest_scope.sql` to keep cross-stage dashboard comparisons within the latest visible departure company scope. No production data reset is needed.
 
 Validation includes focused API-cache, role-panel, response/contact and cursor/authorization tests, plus Chromium desktop/mobile flows with explicit mock contracts. Browser tests do not submit production records. Production checks verify deployed commits, application readiness and public page rendering; they do not claim authenticated production E2E.
