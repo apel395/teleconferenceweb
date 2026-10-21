@@ -6,6 +6,9 @@ export const stages:Record<string,string>={PRE:'Pramanifest',DEPARTURE:'Manifest
 export const statuses:Record<string,string>={ACTIVE:'Aktif',CANCELLED:'Batal',REPLACED:'Digantikan',TRANSFERRED:'Mutasi',RETURNED:'Sudah pulang',SUBMITTED:'Menunggu pemeriksaan',NEEDS_REVISION:'Perlu perbaikan',APPROVED:'Disetujui',REJECTED:'Ditolak',OPEN:'Terbuka',IN_PROGRESS:'Ditangani',RESOLVED:'Selesai'};
 export const types:Record<string,string>={REGULER:'Haji reguler',HAJI_KHUSUS:'Haji khusus',UMRAH:'Umrah'};
 export const changeTypes:Record<string,string>={CORRECTION:'Koreksi data',REPLACEMENT:'Penggantian jemaah',CANCEL:'Pembatalan',TRANSFER:'Mutasi kloter / lembaga'};
+// A person and a yearly participation have different IDs and revision counters.
+// Only copy identity fields: change requests must target the participation.
+export function flattenPilgrim(p:Pilgrim):Pilgrim{return {...p,full_name:p.person?.full_name??p.full_name,phone:p.person?.phone??p.phone,gender:p.person?.gender??p.gender,birth_date:p.person?.birth_date??p.birth_date};}
 export function safeDrive(value:unknown):string|null{try{const u=new URL(String(value));return u.protocol==='https:'&&!u.username&&!u.password&&['drive.google.com','docs.google.com'].includes(u.hostname)?u.href:null;}catch{return null;}}
 export function displayTime(value:string){return value?new Date(value).toLocaleString('id-ID',{timeZone:'Asia/Jakarta'})+' WIB':'—';}
 // Binary Excel requests carry the same session checks as the JSON API helper.
