@@ -30,7 +30,7 @@ async function run(){
  for(let i=0;i<100;i++){try{if((await fetch(base)).ok)break;}catch{}await new Promise(r=>setTimeout(r,100));}
  browser=await chromium.launch({headless:true,args:['--no-sandbox']});
  const a=await scenario('admin',true);await a.page.goto(base+'/admin/data-travel');
- await a.page.getByRole('heading',{name:'Data Travel PPIU/PIHK',exact:true}).waitFor();await a.page.getByRole('button',{name:'Tambah Travel',exact:true}).click();
+ await a.page.getByRole('heading',{name:'Data Travel PPIU/PIHK',exact:true}).last().waitFor();await a.page.getByRole('button',{name:'Tambah Travel',exact:true}).click();
  await a.page.getByLabel('Jenis travel *',{exact:true}).selectOption('PIHK');
  await a.page.getByLabel('Nama travel *',{exact:true}).fill('Testing Travel Riau');
  await a.page.getByLabel('NIB travel (13 digit) *',{exact:true}).fill('123');
@@ -44,7 +44,7 @@ async function run(){
  await a.page.getByLabel('Nomor izin',{exact:true}).fill('TESTING-PIHK-123');await a.page.getByLabel('Sumber verifikasi / dokumen izin (HTTPS)',{exact:true}).fill('https://drive.google.com/testing-license');
  await a.page.getByRole('button',{name:'Simpan verifikasi izin',exact:true}).click();await a.page.getByText('Verifikasi izin travel disimpan.',{exact:true}).waitFor();await a.page.getByRole('cell',{name:'Tampil',exact:true}).waitFor();
  await a.page.getByLabel('Cari travel',{exact:true}).fill('tidak ditemukan');await a.page.getByText('Tidak ada travel yang sesuai filter.',{exact:true}).waitFor();await a.page.getByLabel('Cari travel',{exact:true}).fill('');await a.page.getByLabel('Jenis travel',{exact:true}).selectOption('PPIU');await a.page.getByText('Tidak ada travel yang sesuai filter.',{exact:true}).waitFor();await a.page.getByLabel('Jenis travel',{exact:true}).selectOption('PIHK');await a.page.getByRole('cell',{name:'Tampil',exact:true}).waitFor();
- await a.page.goto(base+'/direktori-travel');await a.page.getByRole('link',{name:'Tambah / Kelola Travel',exact:true}).click();await a.page.getByRole('heading',{name:'Data Travel PPIU/PIHK',exact:true}).waitFor();assert.equal(a.calls.some(c=>c.path==='/users'),false);await finish(a);
+ await a.page.goto(base+'/direktori-travel');await a.page.getByRole('link',{name:'Tambah / Kelola Travel',exact:true}).click();await a.page.getByRole('heading',{name:'Data Travel PPIU/PIHK',exact:true}).last().waitFor();assert.equal(a.calls.some(c=>c.path==='/users'),false);await finish(a);
  const guest=await scenario(null,true);await guest.page.goto(base+'/direktori-travel');await guest.page.getByRole('heading',{name:'Uji coba Travel Riau',exact:true}).waitFor();assert.equal(await guest.page.getByRole('link',{name:'Tambah / Kelola Travel',exact:true}).count(),0);assert.equal(guest.calls.some(c=>c.path==='/users/companies'),false);await finish(guest);
  for(const role of ['travel','operator']){const other=await scenario(role);await other.page.goto(base+`/${role}/data-travel`);assert.equal(await other.page.getByRole('button',{name:'Tambah Travel',exact:true}).count(),0);assert.equal(other.calls.some(c=>c.path==='/users/companies'),false);await finish(other);}
  console.log('PASS travel entry: mobile create/NIB validation, identity edit, explicit license verification, table filters, admin shortcut, guest directory and non-admin guards.');
