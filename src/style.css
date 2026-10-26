@@ -285,3 +285,5 @@ td b{font:700 11px 'Manrope'}
 .signup-callout h2{margin:0;font-size:16px;color:var(--brown)}
 .signup-callout p{font-size:13px;line-height:1.5;margin:8px 0 14px;color:#65503b}
 .signup-callout .btn{min-height:46px;font-size:14px;border:1px solid #ac853b}
+
+.public-form-notice{position:fixed;right:16px;bottom:20px;z-index:2100;display:flex;align-items:flex-start;gap:16px;width:min(520px,calc(100vw - 32px));max-height:40vh;overflow:auto;padding:18px;border:1px solid #b8d3bf;border-radius:12px;background:#edf7ef;color:#245a32;box-shadow:0 8px 32px #0003;font-size:16px;line-height:1.6}.public-form-notice.notice-error{background:#fff1f0;border-color:#efb8b4;color:#8f211c}.public-form-notice p{margin:6px 0 0;overflow-wrap:anywhere}.public-form-notice button{margin-left:auto;background:transparent;border:1px solid currentColor;border-radius:6px;color:inherit;padding:6px 10px;cursor:pointer;flex-shrink:0}

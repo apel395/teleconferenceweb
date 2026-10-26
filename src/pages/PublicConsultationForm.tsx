@@ -1,3 +1,4 @@
+import PublicForm,{PublicFeedback} from '../components/PublicForm';
 import { useState } from 'react';
 import { Link, Navigate, useParams } from 'react-router-dom';
 import { ArrowRight, CheckCircle2, FileText } from 'lucide-react';
@@ -83,7 +84,7 @@ export default function PublicConsultationForm() {
   return (
     <main className="login-section">
       <div className="login-card">
-        <div className="login-brand">
+        <PublicFeedback error={error} busy={saving} message={success?`Permohonan berhasil terkirim. Referensi: ${success.reference}.`:""}/><div className="login-brand">
           <img className="brand-logo" src="/logo-kemenhaj.png" alt="Logo Kemenhaj Riau"/>
           <div><b>Pengajuan Layanan</b><span>Kantor Wilayah Kemenhaj Provinsi Riau</span></div>
         </div>
@@ -92,7 +93,7 @@ export default function PublicConsultationForm() {
           <>
             <h1>{service.title}</h1>
             <p>Kirim informasi awal agar petugas dapat menindaklanjuti kebutuhan Anda.</p>
-            <form onSubmit={onSubmit}>
+            <PublicForm onSubmit={onSubmit}>
               {error && <div className="form-error" role="alert">{error}</div>}
               <label>
                 Nama lengkap
@@ -121,7 +122,7 @@ export default function PublicConsultationForm() {
               <button className="btn primary full" disabled={saving}>
                 {saving ? 'Mengirim...' : 'Kirim pengajuan'} <ArrowRight size={16} />
               </button>
-            </form>
+            </PublicForm>
             <small>Dengan mengirim, Anda menyatakan informasi yang diberikan sesuai kondisi dan dokumen yang tersedia.</small>
           </>
         ) : (

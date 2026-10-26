@@ -35,3 +35,4 @@ jobs:
           node test/browser-travel-directory.cjs
           node test/browser-login.cjs
           node test/browser-travel-intake.cjs
+          node test/browser-public-feedback.cjs

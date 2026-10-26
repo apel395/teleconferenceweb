@@ -1,3 +1,4 @@
+import PublicForm,{PublicFeedback} from '../components/PublicForm';
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { api } from '../lib/api';
@@ -28,7 +29,7 @@ export function PpiuForm(){
 export function PpiuTrack(){
   const [ref,setRef]=useState(new URLSearchParams(window.location.search).get('ref')||'');const [email,setEmail]=useState('');const [item,setItem]=useState<Application|null>(null);const [error,setError]=useState('');const [busy,setBusy]=useState(false);
   async function submit(e:React.FormEvent){e.preventDefault();setBusy(true);setError('');setItem(null);try{const result=await api<{application:Application}>(`/operations/ppiu/track?reference=${encodeURIComponent(ref.trim())}&email=${encodeURIComponent(email.trim())}`);setItem(result.application)}catch(err){setError(err instanceof Error?err.message:'Gagal memeriksa status.')}finally{setBusy(false)}}
-  return <main className="login-section"><div className="login-card"><h1>Status pengajuan PPIU</h1><p>Masukkan referensi dan email yang dipakai saat pengajuan.</p><form onSubmit={submit}><label>Nomor referensi<input required value={ref} onChange={e=>setRef(e.target.value)}/></label><label>Email<input type="email" required value={email} onChange={e=>setEmail(e.target.value)}/></label>{error&&<p className="form-error" role="alert">{error}</p>}<button className="btn primary full" disabled={busy}>{busy?'Memeriksa…':'Cek status'}</button></form>{item&&<section role="status"><h2>{item.company_name}</h2><p>{item.reference} · {applicationLabels[item.status]||item.status}</p>{item.review_notes&&<p>Catatan petugas: {item.review_notes}</p>}</section>}</div></main>;
+  return <main className="login-section"><div className="login-card"><PublicFeedback error={error} busy={busy} message={item?"Status pengajuan berhasil dimuat.":""}/><h1>Status pengajuan PPIU</h1><p>Masukkan referensi dan email yang dipakai saat pengajuan.</p><PublicForm onSubmit={submit}><label>Nomor referensi<input required value={ref} onChange={e=>setRef(e.target.value)}/></label><label>Email<input type="email" required value={email} onChange={e=>setEmail(e.target.value)}/></label>{error&&<p className="form-error" role="alert">{error}</p>}<button className="btn primary full" disabled={busy}>{busy?'Memeriksa…':'Cek status'}</button></PublicForm>{item&&<section role="status"><h2>{item.company_name}</h2><p>{item.reference} · {applicationLabels[item.status]||item.status}</p>{item.review_notes&&<p>Catatan petugas: {item.review_notes}</p>}</section>}</div></main>;
 }
 
 export function OperationsDashboard({base,kind}:{base:string;kind:'returns'|'ppiu'}){
