@@ -10,13 +10,14 @@ export function AuthProvider({children}:{children:ReactNode}){
  const [user,setUser]=useState<User|null>(()=>isAuthenticated()?getUser():null),[isAuth,setIsAuth]=useState(isAuthenticated),[modules,setModules]=useState<string[]>([]),[accessLoading,setLoading]=useState(()=>isAuthenticated()),[accessError,setError]=useState('');
  const [scopeKey,setScopeKey]=useState('');
  const observedToken=useRef(getToken());
+ const loginAccessToken=useRef<string|null>(null);
  const pending=useRef<{token:string;promise:Promise<void>}|null>(null);
  const refreshAccess=useCallback(async()=>{
   const token=getToken();if(!token||!isAuthenticated()){setModules([]);setLoading(false);return;}
   if(pending.current?.token===token)return pending.current.promise;
   const promise=(async()=>{
    try{
-    const access=await api<{user?:User;cache?:CacheContext|null;role:User['role'];company_id:string|null;modules:string[]}>('/settings/access/me');
+    const access=await api<{user?:User;cache?:CacheContext|null;role:User['role'];company_id:string|null;modules:string[]}>('/settings/access/me',{timeoutMs:20000});
     const [profile,context]=access.user?[{user:access.user},{cache:access.cache||null}]:await Promise.all([api<{user:User}>('/auth/me'),api<{cache:CacheContext}>('/workspace/cache-context',{cache:'no-store'}).catch(()=>null)]);
     if(getToken()!==token)return;
     if(profile.user.role!==access.role||(profile.user.company_id||null)!==(access.company_id||null))throw Error('Akses berubah. Silakan muat ulang.');
@@ -27,8 +28,12 @@ export function AuthProvider({children}:{children:ReactNode}){
  },[]);
  const logout=useCallback(()=>{clearSession();setUser(null);setIsAuth(false);setModules([]);setLoading(false);setError('');},[]);
  const login=useCallback(async(email:string,password:string)=>{
-  const session=await api<AuthSession>('/auth/login',{method:'POST',body:{email,password}});
-  setModules([]);setLoading(true);observedToken.current=session.token;setSession(session);setUser(session.user);setIsAuth(true);await refreshAccess();
+  const session=await api<AuthSession>('/auth/login',{method:'POST',body:{email:email.trim(),password},timeoutMs:60000});
+  const access=session.access;
+  const ready=access&&access.role===session.user.role&&(access.company_id||null)===(session.user.company_id||null)&&Array.isArray(access.modules)&&access.modules.every(m=>typeof m==='string');
+  observedToken.current=session.token;setSession(session);setScopeKey('');setUser(session.user);setError('');
+  if(ready){loginAccessToken.current=session.token;setModules(access.modules);setLoading(false);setIsAuth(true);}
+  else{loginAccessToken.current=null;setModules([]);setLoading(true);setIsAuth(true);await refreshAccess();}
  },[refreshAccess]);
  useEffect(()=>{
   const expired=()=>{logout();navigate('/masuk?sesi=berakhir',{replace:true});};
@@ -39,7 +44,8 @@ export function AuthProvider({children}:{children:ReactNode}){
   return()=>{stop();window.removeEventListener('kemenhaj-session-expired',expired);window.removeEventListener('kemenhaj-access-denied',denied);};
  },[logout,navigate,refreshAccess]);
  useEffect(()=>{
-  if(!isAuth)return;void refreshAccess();
+  if(!isAuth)return;
+  if(loginAccessToken.current===getToken())loginAccessToken.current=null;else void refreshAccess();
   const refresh=()=>{if(!document.hidden)void refreshAccess();};
   const timer=window.setInterval(refresh,30000);window.addEventListener('focus',refresh);document.addEventListener('visibilitychange',refresh);
   return()=>{window.clearInterval(timer);window.removeEventListener('focus',refresh);document.removeEventListener('visibilitychange',refresh);};

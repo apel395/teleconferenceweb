@@ -18,6 +18,8 @@ jobs:
           cache: npm
       - run: npm ci --ignore-scripts
       - run: npm run build
+        env:
+          VITE_API_URL: http://127.0.0.1:4178/api
       - run: node --test --test-concurrency=1 test/*.test.cjs
       - name: Install isolated browser test dependency
         run: npm install --prefix /tmp/kemenhaj-browser --ignore-scripts --no-audit --no-fund playwright@1.62.1
@@ -31,3 +33,5 @@ jobs:
           node test/browser-public-workspace.cjs
 
           node test/browser-travel-directory.cjs
+          node test/browser-login.cjs
+          node test/browser-travel-intake.cjs
