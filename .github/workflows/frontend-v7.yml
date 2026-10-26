@@ -30,3 +30,4 @@ jobs:
           node test/browser-operations.cjs
           node test/browser-public-workspace.cjs
 
+          node test/browser-travel-directory.cjs
