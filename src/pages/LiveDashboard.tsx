@@ -1,4 +1,5 @@
 import RoleDashboard from './RoleDashboard';
+import TravelDirectoryAdmin from './TravelDirectoryAdmin';
 import {NotificationBell,NotificationsPage} from '../components/Notifications';
 import { useEffect, useState } from 'react';
 import { Link, Navigate, NavLink, Route, Routes, useNavigate, useParams, useLocation, useSearchParams } from 'react-router-dom';
@@ -154,6 +155,7 @@ export function DashboardShell({ base, children }: { base: string; children: Rea
   if(can('hajj_staff')){if(role==='admin'||role==='petugas_haji')add('penugasan',role==='admin'?'Petugas & Penugasan':'Penugasan & Jemaah',<Users size={17}/>);add('kondisi-jemaah','Kondisi Jemaah',<Users size={17}/>);}
   if(can('materials'))add('materi','Materi Jemaah',<FileText size={17}/>);
   if(can('chat'))add('chat','Chat Jemaah',<MessageSquare size={17}/>);
+  if(role==='admin'&&can('accounts'))add('data-travel','Data Travel PPIU/PIHK',<Users size={17}/>);
   if(can('accounts'))add('akun','Akun & Organisasi',<Users size={17}/>);
   if(can('settings'))add('pengaturan','Role & Hak Akses',<ClipboardCheck size={17}/>);
   add('notifikasi','Notifikasi',<MessageSquare size={17}/>);
@@ -926,6 +928,7 @@ export function LiveDashboard({base}:{base:string}){
   <Route path="perizinan" element={gate('licenses',<LicensingPage/>)}/><Route path="izin-ppiu" element={<Navigate to={`${base}/perizinan`} replace/>}/>
   <Route path="manasik" element={gate('manasik',<ManasikPage/>)}/><Route path="jemaah" element={gate('manifests',<PilgrimDataPage/>)}/>
   <Route path="penugasan" element={gate('hajj_staff',role==='operator'?<RoleHome/>:<HajjStaffPage/>)}/><Route path="kondisi-jemaah" element={gate('hajj_staff',<ConditionsPage/>)}/>
+  <Route path="data-travel" element={role==='admin'?gate('accounts',<TravelDirectoryAdmin/>):<RoleHome/>}/>
   <Route path="akun" element={role==='admin'?gate('accounts',<AccountsPage/>):<RoleHome/>}/>
   <Route path="pengaturan" element={role==='admin'?gate('settings',<AccessSettings/>):<RoleHome/>}/>
   <Route path="laporan-kloter" element={gate('regular',<OperationsDashboard base={base} kind="returns"/>)}/><Route path="laporan-kloter/:id" element={gate('regular',<ReturnReportEditor base={base}/>)}/>
