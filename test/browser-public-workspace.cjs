@@ -34,6 +34,8 @@ else if(path==='/consultations/complaints/'+complaint.id&&method==='PATCH'){asse
 else if(path==='/services/pilgrim-lookup'){assert.equal(body.porsi_number,'00001234');assert.equal(body.access_code,undefined);data={entry:{hajj_year:2026,hajj_type:'REGULER',kloter_code:'BTH-09',departure_at:'2026-11-01T02:00:00Z'},contact,message:'Jadwal mengikuti informasi Kanwil.'}}
 else if(path==='/operations/umrah-travel/company')data={company:{id:id(99),name:'Testing Travel',office_address:'Testing Address',organization_type:'PPIU',license_number:'TEST-001'}};
 else if(path==='/operations/umrah-travel/options')data={airlines:[],routes:[]};else if(path==='/operations/umrah-travel'&&method==='GET')data={reports:[ticket],total:1};else if(path==='/operations/umrah-travel/'+ticket.id)data={report:ticket};
+else if(path==='/data/manifests')data={snapshots:[{id:id(70),hajj_year:2026,stage:'PRE',company_id:id(99),source_name:'testing-manifest.xlsx',created_at:'2026-11-01T00:00:00Z'}]};
+else if(path==='/data/manifests/'+id(70))data={snapshot:{id:id(70),hajj_year:2026,stage:'PRE',company_id:id(99),source_name:'testing-manifest.xlsx',created_at:'2026-11-01T00:00:00Z'},rows:[{data:{full_name:'Testing Manifest Jemaah',porsi_number:'00005678',kloter_code:'BTH-10',phone:'',status:'ACTIVE'},requires_identity_review:true}]};
 else if(path==='/data/options')data={companies:[]};else if(path==='/data/pilgrims')data={entries:[{id:id(50),full_name:'Testing Jemaah',porsi_number:'00001234',version:1,status:'ACTIVE',hajj_type:'REGULER',kloter_code:'BTH-09'}],total:1};else if(path==='/data/pilgrims/'+id(50))data={entry:{id:id(50),version:1,status:'ACTIVE',person:{id:id(51),version:9,full_name:'Testing Jemaah'}}};else if(path.endsWith('/history'))data={history:[]};else if(path==='/data/pilgrims/'+id(50)+'/access-code'){assert.equal(body.hours,24);data={access_code:'b'.repeat(48)}}
 else{status=404;data={error:'Unexpected contract '+method+' '+path}}
 await route.fulfill({status,contentType:'application/json',body:JSON.stringify(data)});});return {page,context,calls,errors};}
@@ -77,5 +79,22 @@ assert.equal(await mobileReport.page.locator('.journey-form-actions').evaluate(e
 const actionRect=await mobileReport.page.locator('.journey-form-actions').boundingBox();
 assert.ok(actionRect&&actionRect.x>=0&&actionRect.x+actionRect.width<=390,'Mobile form actions should fit the viewport');
 await finish(mobileReport);
-console.log('PASS items 7–10: mobile public catalogue/lookup, travel cards and report progress/actions, FAQ publishing/CAS, access codes, guest/operator chat, complaint response privacy/contact, Back cache, one-request access, notifications and scoped dashboards.');}
+const mobilePilgrim=await scenario('travel',true);
+await mobilePilgrim.page.goto(base+'/travel/jemaah');
+await mobilePilgrim.page.locator('.pilgrim-mobile-card').waitFor();
+assert.equal(await mobilePilgrim.page.locator('.pilgrim-desktop-table').isVisible(),false);
+assert.equal(await mobilePilgrim.page.locator('.pilgrim-mobile-card').getByText('Testing Jemaah',{exact:true}).count(),1);
+assert.equal(await mobilePilgrim.page.locator('.pilgrim-mobile-card').getByText('00001234').count(),1);
+await mobilePilgrim.page.getByRole('button',{name:'Lihat jemaah'}).click();
+await mobilePilgrim.page.locator('.manifest-details').waitFor();
+await mobilePilgrim.page.getByRole('button',{name:'Tiga tahap manifest'}).click();
+await mobilePilgrim.page.getByLabel('Pilih versi manifest').selectOption(id(70));
+await mobilePilgrim.page.locator('.manifest-snapshot-mobile-card').waitFor();
+assert.equal(await mobilePilgrim.page.locator('.manifest-snapshot-desktop-table').isVisible(),false);
+assert.equal(await mobilePilgrim.page.locator('.manifest-snapshot-mobile-card').getByText('Testing Manifest Jemaah').count(),1);
+assert.equal(await mobilePilgrim.page.locator('.manifest-snapshot-mobile-card').getByText('Periksa identitas').count(),1);
+const pilgrimRect=await mobilePilgrim.page.locator('.manifest-snapshot-mobile-card').boundingBox();
+assert.ok(pilgrimRect&&pilgrimRect.x>=0&&pilgrimRect.x+pilgrimRect.width<=390,'Mobile manifest card should fit the viewport');
+await finish(mobilePilgrim);
+console.log('PASS items 7–10: mobile public catalogue/lookup, travel/report/pilgrim/manifest cards, FAQ publishing/CAS, access codes, guest/operator chat, complaint response privacy/contact, Back cache, one-request access, notifications and scoped dashboards.');}
 run().catch(async e=>{console.error(e);if(browser)for(const c of browser.contexts())for(const p of c.pages())console.error('FAIL PAGE',p.url(),await p.locator('body').innerText().catch(()=>''));process.exitCode=1}).finally(async()=>{await browser?.close();server.kill('SIGTERM')});
