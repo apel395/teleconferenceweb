@@ -321,3 +321,27 @@
  .travel-journey-stage{padding:13px;min-height:122px}
  .travel-journey-stage strong{font-size:26px}
 }
+
+/* Readable mobile pilgrim and manifest lists without changing API pagination. */
+.pilgrim-mobile-list,.manifest-snapshot-mobile-list{display:none}
+.pilgrim-filter-help{font-size:12px;color:#657168;margin:12px 0 0;line-height:1.5}
+.pilgrim-result-count{margin:0 0 15px;font-size:13px;font-weight:700;color:#566c5c}
+@media(max-width:760px){
+ .pilgrim-desktop-table,.manifest-snapshot-desktop-table{display:none}
+ .pilgrim-mobile-list,.manifest-snapshot-mobile-list{display:grid;gap:12px}
+ .pilgrim-mobile-card,.manifest-snapshot-mobile-card{min-width:0;border:1px solid #dce5dd;border-radius:13px;padding:16px;background:#fff;box-shadow:0 2px 10px #18362208}
+ .pilgrim-mobile-card-head,.manifest-snapshot-mobile-head{display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:9px 12px;border-bottom:1px solid #e7ece7;padding-bottom:13px}
+ .pilgrim-mobile-card-head>div,.manifest-snapshot-mobile-head>div{flex:1 1 155px;min-width:0}
+ .pilgrim-mobile-card-head span:first-child{font-size:11px;color:#697d6c}
+ .pilgrim-mobile-card h3,.manifest-snapshot-mobile-card h4{font-size:16px;color:#2b4936;margin:4px 0 5px;line-height:1.35;overflow-wrap:anywhere}
+ .pilgrim-mobile-card-head small,.manifest-snapshot-mobile-head small{font-size:12px;color:#69776c;overflow-wrap:anywhere}
+ .pilgrim-mobile-status,.manifest-snapshot-review{display:inline-flex;border-radius:99px;padding:6px 9px;background:#eaf4ec;color:#315b3e;font-size:11px;font-weight:700;max-width:100%;overflow-wrap:anywhere}
+ .manifest-snapshot-review{background:#fff2db;color:#85591e}
+ .pilgrim-mobile-data,.manifest-snapshot-mobile-card dl{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px;margin:14px 0 16px}
+ .pilgrim-mobile-data>div,.manifest-snapshot-mobile-card dl>div{min-width:0}
+ .pilgrim-mobile-data dt,.manifest-snapshot-mobile-card dt{font-size:11px;color:#657368;margin-bottom:4px}
+ .pilgrim-mobile-data dd,.manifest-snapshot-mobile-card dd{margin:0;font-size:13px;font-weight:650;line-height:1.45;color:#334738;overflow-wrap:anywhere}
+ .pilgrim-mobile-detail{display:flex;align-items:center;justify-content:center;width:100%;min-height:44px}
+ .pilgrim-mobile-empty{font-size:13px;color:#687a6e;padding:20px;border:1px dashed #d0dbd1;border-radius:10px}
+ .manifest-snapshot-filters>*{min-width:0}
+}
