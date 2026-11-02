@@ -288,3 +288,36 @@
  .journey-form-actions .btn{width:100%;height:100%;min-width:0;white-space:normal;text-align:center;justify-content:center;font-size:13px;line-height:1.3;padding:10px 8px}
  .journey-form-actions .btn:only-child{grid-column:1/-1}
 }
+
+/* A direct workflow for travel accounts, using existing dashboard totals. */
+.travel-dashboard-shortcuts{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:20px;margin:18px 0 24px;padding:22px 24px;border:1px solid #cbded1;border-radius:16px;background:linear-gradient(120deg,#eaf4ec,#f8faf6)}
+.travel-dashboard-shortcuts-copy{flex:1 1 260px;min-width:0}
+.travel-dashboard-eyebrow{display:block;font-size:11px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:#52775b}
+.travel-dashboard-shortcuts h2{margin:6px 0 7px;font-size:22px;line-height:1.3;color:#294c35}
+.travel-dashboard-shortcuts p{max-width:510px;margin:0;color:#566e5b;font-size:13px;line-height:1.6}
+.travel-dashboard-shortcuts-actions{display:flex;align-items:center;flex-wrap:wrap;gap:9px;max-width:100%}
+.travel-dashboard-shortcuts-actions .btn{min-height:44px;display:inline-flex;align-items:center;justify-content:center;white-space:normal;text-align:center}
+.travel-journey-overview{margin:18px 0 24px}
+.travel-journey-overview-head{display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:14px}
+.travel-journey-overview-head h2{margin:0 0 5px;font-size:19px;color:#324a38}
+.travel-journey-overview-head p{margin:0;color:#637369;font-size:13px}
+.travel-journey-overview-head>a{font-size:13px;font-weight:700}
+.travel-journey-stages{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.travel-journey-stage{display:flex;flex-direction:column;min-width:0;min-height:132px;gap:6px;padding:17px;border:1px solid #d9e4db;border-top:3px solid #8fa996;border-radius:13px;background:#fff;color:#324539;text-decoration:none;transition:border-color .15s,box-shadow .15s}
+.travel-journey-stage:hover,.travel-journey-stage:focus-visible{border-color:#59856a;box-shadow:0 3px 16px #193d231a}
+.travel-journey-stage>span{font-size:12px;font-weight:700;line-height:1.4}
+.travel-journey-stage strong{font-size:29px;line-height:1.1;color:#305841;font-variant-numeric:tabular-nums}
+.travel-journey-stage small{margin-top:auto;font-size:11px;line-height:1.45;color:#6a796d}
+.travel-journey-stage.stage-pending_review,.travel-journey-stage.stage-return_notes{border-top-color:#c18f4f}
+.travel-journey-stage.stage-closed{border-top-color:#78909c}
+@media(max-width:950px){.travel-journey-stages{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:600px){
+ .travel-dashboard-shortcuts{padding:17px;gap:16px;margin-top:12px}
+ .travel-dashboard-shortcuts h2{font-size:19px}
+ .travel-dashboard-shortcuts-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:100%}
+ .travel-dashboard-shortcuts-actions .btn{min-width:0;padding:10px;font-size:12px;line-height:1.4}
+ .travel-dashboard-shortcuts-actions .btn:first-child{grid-column:1/-1}
+ .travel-journey-stages{gap:9px}
+ .travel-journey-stage{padding:13px;min-height:122px}
+ .travel-journey-stage strong{font-size:26px}
+}

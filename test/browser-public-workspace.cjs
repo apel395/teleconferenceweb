@@ -57,6 +57,13 @@ const cardRect=await mobileTravel.page.locator('.journey-ticket-card').boundingB
 assert.ok(cardRect&&cardRect.x>=0&&cardRect.x+cardRect.width<=390,'Mobile ticket card should fit the viewport');
 await finish(mobileTravel);
 const mobileReport=await scenario('travel',true);
+await mobileReport.page.goto(base+'/travel');
+await mobileReport.page.getByRole('region',{name:'Aksi cepat travel'}).waitFor();
+assert.equal(await mobileReport.page.getByRole('link',{name:/Buat tiket baru/}).getAttribute('href'),'/travel/laporan-umrah/baru');
+await mobileReport.page.getByRole('region',{name:'Status tiket perjalanan'}).waitFor();
+assert.equal(await mobileReport.page.getByRole('link',{name:'Sudah berangkat: 3 tiket'}).getAttribute('href'),'/travel/tiket-perjalanan?phase=DEPARTED');
+const shortcutsRect=await mobileReport.page.locator('.travel-dashboard-shortcuts').boundingBox();
+assert.ok(shortcutsRect&&shortcutsRect.x>=0&&shortcutsRect.x+shortcutsRect.width<=390,'Mobile travel shortcuts should fit the viewport');
 await mobileReport.page.goto(base+'/travel/laporan-umrah/baru');
 await mobileReport.page.getByRole('region',{name:'Panduan pengisian laporan'}).waitFor();
 const count=mobileReport.page.locator('.journey-form-guide-count');
