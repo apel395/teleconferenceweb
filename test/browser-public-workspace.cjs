@@ -32,6 +32,7 @@ else if(path==='/consultations/complaints/track'){assert.equal(body.reference,'T
 else if(path==='/consultations/complaints/'+complaint.id&&method==='GET')data={complaint,files:[]};
 else if(path==='/consultations/complaints/'+complaint.id&&method==='PATCH'){assert.equal(body.version,2);assert.equal(body.internal_notes,'Testing private memo');complaint={...complaint,...body,version:3,responses:[...complaint.responses,{at:'2026-01-02T00:00:00Z',status:body.status,response:body.public_notes}]};data={complaint}}
 else if(path==='/services/pilgrim-lookup'){assert.equal(body.porsi_number,'00001234');assert.equal(body.access_code,undefined);data={entry:{hajj_year:2026,hajj_type:'REGULER',kloter_code:'BTH-09',departure_at:'2026-11-01T02:00:00Z'},contact,message:'Jadwal mengikuti informasi Kanwil.'}}
+else if(path==='/operations/umrah-travel/company')data={company:{id:id(99),name:'Testing Travel',office_address:'Testing Address',organization_type:'PPIU',license_number:'TEST-001'}};
 else if(path==='/operations/umrah-travel/options')data={airlines:[],routes:[]};else if(path==='/operations/umrah-travel'&&method==='GET')data={reports:[ticket],total:1};else if(path==='/operations/umrah-travel/'+ticket.id)data={report:ticket};
 else if(path==='/data/options')data={companies:[]};else if(path==='/data/pilgrims')data={entries:[{id:id(50),full_name:'Testing Jemaah',porsi_number:'00001234',version:1,status:'ACTIVE',hajj_type:'REGULER',kloter_code:'BTH-09'}],total:1};else if(path==='/data/pilgrims/'+id(50))data={entry:{id:id(50),version:1,status:'ACTIVE',person:{id:id(51),version:9,full_name:'Testing Jemaah'}}};else if(path.endsWith('/history'))data={history:[]};else if(path==='/data/pilgrims/'+id(50)+'/access-code'){assert.equal(body.hours,24);data={access_code:'b'.repeat(48)}}
 else{status=404;data={error:'Unexpected contract '+method+' '+path}}
@@ -55,5 +56,19 @@ assert.equal(await mobileTravel.page.getByRole('link',{name:'Buka tiket',exact:t
 const cardRect=await mobileTravel.page.locator('.journey-ticket-card').boundingBox();
 assert.ok(cardRect&&cardRect.x>=0&&cardRect.x+cardRect.width<=390,'Mobile ticket card should fit the viewport');
 await finish(mobileTravel);
-console.log('PASS items 7–10: mobile public catalogue/lookup and travel cards, FAQ publishing/CAS, access codes, guest/operator chat, complaint response privacy/contact, Back cache, one-request access, notifications and scoped dashboards.');}
+const mobileReport=await scenario('travel',true);
+await mobileReport.page.goto(base+'/travel/laporan-umrah/baru');
+await mobileReport.page.getByRole('region',{name:'Panduan pengisian laporan'}).waitFor();
+const count=mobileReport.page.locator('.journey-form-guide-count');
+assert.match(await count.innerText(),/^0 dari \d+ pemeriksaan terisi$/);
+assert.equal(await mobileReport.page.getByRole('progressbar',{name:'Kemajuan pemeriksaan'}).count(),1);
+await mobileReport.page.locator('.airport-indicator select').first().selectOption('YES');
+assert.match(await count.innerText(),/^1 dari \d+ pemeriksaan terisi$/);
+assert.equal(await mobileReport.page.getByRole('button',{name:'Simpan draft tiket'}).isEnabled(),true);
+assert.equal(await mobileReport.page.getByRole('button',{name:'Kirim ke Operator Kanwil'}).isEnabled(),true);
+assert.equal(await mobileReport.page.locator('.journey-form-actions').evaluate(e=>getComputedStyle(e).position),'sticky');
+const actionRect=await mobileReport.page.locator('.journey-form-actions').boundingBox();
+assert.ok(actionRect&&actionRect.x>=0&&actionRect.x+actionRect.width<=390,'Mobile form actions should fit the viewport');
+await finish(mobileReport);
+console.log('PASS items 7–10: mobile public catalogue/lookup, travel cards and report progress/actions, FAQ publishing/CAS, access codes, guest/operator chat, complaint response privacy/contact, Back cache, one-request access, notifications and scoped dashboards.');}
 run().catch(async e=>{console.error(e);if(browser)for(const c of browser.contexts())for(const p of c.pages())console.error('FAIL PAGE',p.url(),await p.locator('body').innerText().catch(()=>''));process.exitCode=1}).finally(async()=>{await browser?.close();server.kill('SIGTERM')});
