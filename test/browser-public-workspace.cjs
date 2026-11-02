@@ -5,6 +5,7 @@ const contact={name:'Testing Admin',phone:'6281234567890',email:'testing@example
 let materials=[{id:id(1),category:'FIKIH',title:'Testing Materi Fikih',body:'Uji coba isi materi',source_url:'https://example.org/testing',video_url:'',sort_order:0,service_key:'',published:true,updated_at:'2026-01-01T00:00:00Z'}],messages=[],thread=null;
 let complaint={id:id(10),reference:'TESTING-PENGADUAN',version:2,status:'diproses',public_notes:'Testing respon awal',internal_notes:'INTERNAL_PRIVATE',responses:[{at:'2026-01-01T00:00:00Z',status:'diproses',response:'Testing respon awal'}],form_data:{category:'HAJI_REGULER',name:'Testing Pelapor',chronology:[],requests:[],evidence:[],declaration:true}};
 const ticket={id:id(20),reference:'TESTING-TICKET',journey_status:'PENDING_REVIEW',updated_at:'2026-01-01T00:00:00Z',created_at:'2026-01-01T00:00:00Z',form_data:{ppiu_name:'Testing Travel',travel_date:'2026-11-01',travel_time:'09:00',airport:'CGK',pilgrim_count:23,officer_count:1,officer_names:['Testing Petugas'],items:[],drive_url:'https://drive.google.com/testing'},return_form_data:{},review_data:{},journey_history:[]};
+const changeRequests=[{id:id(80),participation_id:id(50),request_type:'CORRECTION',changes:{full_name:'Testing Nama Baru'},version:1,reason:'Perbaikan ejaan nama',evidence_url:'',status:'SUBMITTED',review_notes:'',requested_by:id(90),created_at:'2026-11-01T00:00:00Z'},{id:id(81),participation_id:id(50),request_type:'CORRECTION',changes:{full_name:'Testing Nama Kedua'},version:1,reason:'Perbaikan kedua',evidence_url:'',status:'SUBMITTED',review_notes:'',requested_by:id(90),created_at:'2026-11-02T00:00:00Z'}];
 let read=false;
 async function scenario(role=null,mobile=false){const user=role?{id:id(90),name:'Testing Account',email:'testing@example.org',role,company_id:id(99),account_provisioned:true,access_version:1}:null;const modules=role==='travel'?['overview','journeys','manifests','licenses']:['overview','materials','materials_publish','chat','complaints','manifests'];const context=await browser.newContext({viewport:mobile?{width:390,height:844}:{width:1440,height:1000}}),page=await context.newPage(),calls=[],errors=[];page.on('pageerror',e=>errors.push(e.message));if(user)await context.addInitScript(user=>{localStorage.setItem('kemenhaj-token','e30.'+btoa(JSON.stringify({exp:Math.floor(Date.now()/1000)+86400}))+'.testing');localStorage.setItem('kemenhaj-user',JSON.stringify(user))},user);
 await context.route('**/api/**',async route=>{const req=route.request(),u=new URL(req.url()),path=u.pathname.slice(4),method=req.method();let body;try{body=req.postDataJSON()}catch{}calls.push({path,method,body,query:u.search});let data={},status=200;
@@ -36,6 +37,7 @@ else if(path==='/operations/umrah-travel/company')data={company:{id:id(99),name:
 else if(path==='/operations/umrah-travel/options')data={airlines:[],routes:[]};else if(path==='/operations/umrah-travel'&&method==='GET')data={reports:[ticket],total:1};else if(path==='/operations/umrah-travel/'+ticket.id)data={report:ticket};
 else if(path==='/data/manifests')data={snapshots:[{id:id(70),hajj_year:2026,stage:'PRE',company_id:id(99),source_name:'testing-manifest.xlsx',created_at:'2026-11-01T00:00:00Z'}]};
 else if(path==='/data/manifests/'+id(70))data={snapshot:{id:id(70),hajj_year:2026,stage:'PRE',company_id:id(99),source_name:'testing-manifest.xlsx',created_at:'2026-11-01T00:00:00Z'},rows:[{data:{full_name:'Testing Manifest Jemaah',porsi_number:'00005678',kloter_code:'BTH-10',phone:'',status:'ACTIVE'},requires_identity_review:true}]};
+else if(path==='/data/changes'&&method==='GET')data={requests:changeRequests,total:changeRequests.length};
 else if(path==='/data/options')data={companies:[]};else if(path==='/data/pilgrims')data={entries:[{id:id(50),full_name:'Testing Jemaah',porsi_number:'00001234',version:1,status:'ACTIVE',hajj_type:'REGULER',kloter_code:'BTH-09'}],total:1};else if(path==='/data/pilgrims/'+id(50))data={entry:{id:id(50),version:1,status:'ACTIVE',person:{id:id(51),version:9,full_name:'Testing Jemaah'}}};else if(path.endsWith('/history'))data={history:[]};else if(path==='/data/pilgrims/'+id(50)+'/access-code'){assert.equal(body.hours,24);data={access_code:'b'.repeat(48)}}
 else{status=404;data={error:'Unexpected contract '+method+' '+path}}
 await route.fulfill({status,contentType:'application/json',body:JSON.stringify(data)});});return {page,context,calls,errors};}
@@ -96,5 +98,25 @@ assert.equal(await mobilePilgrim.page.locator('.manifest-snapshot-mobile-card').
 const pilgrimRect=await mobilePilgrim.page.locator('.manifest-snapshot-mobile-card').boundingBox();
 assert.ok(pilgrimRect&&pilgrimRect.x>=0&&pilgrimRect.x+pilgrimRect.width<=390,'Mobile manifest card should fit the viewport');
 await finish(mobilePilgrim);
-console.log('PASS items 7–10: mobile public catalogue/lookup, travel/report/pilgrim/manifest cards, FAQ publishing/CAS, access codes, guest/operator chat, complaint response privacy/contact, Back cache, one-request access, notifications and scoped dashboards.');}
+const mobileReview=await scenario('admin',true);
+await mobileReview.page.goto(base+'/admin/jemaah?tab=changes');
+await mobileReview.page.locator('.change-queue-mobile-card').first().waitFor();
+assert.equal(await mobileReview.page.locator('.change-queue-desktop-table').isVisible(),false);
+await mobileReview.page.locator('.change-queue-mobile-card').first().getByRole('button',{name:'Buka pengajuan'}).click();
+await mobileReview.page.getByRole('region',{name:'Perbandingan perubahan jemaah'}).waitFor();
+assert.equal(await mobileReview.page.locator('.change-comparison').getByText('Testing Nama Baru').count(),1);
+const reviewButton=mobileReview.page.getByRole('button',{name:'Simpan hasil pemeriksaan'});
+assert.equal(await reviewButton.isEnabled(),false);
+await mobileReview.page.getByLabel('Hasil pemeriksaan').selectOption('APPROVED');
+await mobileReview.page.getByLabel('Catatan pemeriksaan *').fill('Sudah dibandingkan dengan dokumen');
+assert.equal(await reviewButton.isEnabled(),false);
+await mobileReview.page.getByRole('checkbox',{name:/Saya sudah membandingkan data saat ini/}).check();
+assert.equal(await reviewButton.isEnabled(),true);
+await mobileReview.page.getByRole('button',{name:'Tutup pengajuan'}).click();
+await mobileReview.page.locator('.change-queue-mobile-card').last().getByRole('button',{name:'Buka pengajuan'}).click();
+assert.equal(await mobileReview.page.getByLabel('Hasil pemeriksaan').inputValue(),'');
+assert.equal(await mobileReview.page.getByRole('checkbox',{name:/Saya sudah membandingkan data saat ini/}).isChecked(),false);
+assert.equal(await mobileReview.page.getByRole('button',{name:'Simpan hasil pemeriksaan'}).isEnabled(),false);
+await finish(mobileReview);
+console.log('PASS items 7–10: mobile public catalogue/lookup, travel/report/pilgrim/manifest/change-review cards, explicit Kanwil decision reset, FAQ publishing/CAS, access codes, guest/operator chat, complaint response privacy/contact, Back cache, one-request access, notifications and scoped dashboards.');}
 run().catch(async e=>{console.error(e);if(browser)for(const c of browser.contexts())for(const p of c.pages())console.error('FAIL PAGE',p.url(),await p.locator('body').innerText().catch(()=>''));process.exitCode=1}).finally(async()=>{await browser?.close();server.kill('SIGTERM')});
