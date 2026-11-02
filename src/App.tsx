@@ -1,6 +1,6 @@
 import TravelAccountRequest from './pages/TravelAccountRequest';
 import {HelpPage,PilgrimLookupPage} from './pages/ServiceHelpPages';
-import { useMemo, useState,Suspense } from 'react';
+import { useMemo, useState, useRef,Suspense } from 'react';
 import {
   AlertTriangle, ArrowRight, BookOpenText, Building2, CalendarDays,
   CheckCircle2, ChevronRight, ClipboardCheck, ClipboardList, FileCheck2,
@@ -102,13 +102,25 @@ function LoginPage(){
   const [password,setPassword]=useState('');
   const [error,setError]=useState('');
   const [loading,setLoading]=useState(false);
-  async function onSubmit(e:React.FormEvent){e.preventDefault();setError('');setLoading(true);void preloadDashboard().catch(()=>{});try{await login(email,password)}catch(err){setError(err instanceof Error?err.message:'Gagal masuk')}finally{setLoading(false)}}
+  const [waitingForServer,setWaitingForServer]=useState(false);
+  const submitting=useRef(false);
+  async function onSubmit(e:React.FormEvent){
+    e.preventDefault();
+    if(submitting.current)return;
+    submitting.current=true;
+    setError('');setLoading(true);setWaitingForServer(false);
+    const waitingTimer=window.setTimeout(()=>setWaitingForServer(true),8000);
+    void preloadDashboard().catch(()=>{});
+    try{await login(email,password)}
+    catch(err){setError(err instanceof Error?err.message:'Gagal masuk')}
+    finally{window.clearTimeout(waitingTimer);submitting.current=false;setLoading(false);setWaitingForServer(false)}
+  }
   const dest = dashboardFor(user?.role);
   const requested=params.get('lanjut');
   const continuation=formContinuation(requested,user?.role)||dest;
   if (isAuth && user) return <Navigate to={continuation} replace />;
   return <Layout><section className="login-section"><div className="login-card"><div className="login-brand"><img className="brand-logo" src="/logo-kemenhaj.png" alt="Logo Kemenhaj Riau"/><div><b>Area Petugas</b><span>Kantor Wilayah Kemenhaj Provinsi Riau</span></div></div>
-  <><h1>Masuk ke sistem</h1><p>Akses dashboard operasional, register laporan, dan tindak lanjut layanan.</p>{!error&&params.get('sesi')==='berakhir'&&<div className="form-error" role="status">Sesi Anda telah berakhir. Silakan masuk kembali untuk melihat pengajuan dan laporan.</div>}<form onSubmit={onSubmit}>{error&&<div className="form-error" role="alert">{error}</div>}<label>Email<input type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="nama@kemenhaj.go.id" required/></label><label>Kata sandi<input type="password" value={password} onChange={e=>setPassword(e.target.value)} placeholder="••••••••" required/></label><button className="btn primary full" disabled={loading}>{loading?'Memproses...':'Masuk'} <ArrowRight size={16}/></button></form><section className="signup-callout" aria-label="Pembuatan akun"><h2>Butuh akun lembaga?</h2><p>Untuk travel PPIU/PIHK, ajukan akun dan berkas melalui layanan publik. Akun dibuat Kanwil setelah verifikasi.</p><Link className="btn gold full" to="/pengajuan-akun-travel">Ajukan Akun Admin Travel <ArrowRight size={18}/></Link></section><small>Akses diberikan sesuai akun dan kewenangan petugas yang terdaftar.</small></>
+  <><h1>Masuk ke sistem</h1><p>Akses dashboard operasional, register laporan, dan tindak lanjut layanan.</p>{!error&&params.get('sesi')==='berakhir'&&<div className="form-error" role="status">Sesi Anda telah berakhir. Silakan masuk kembali untuk melihat pengajuan dan laporan.</div>}<form onSubmit={onSubmit}>{error&&<div className="form-error" role="alert">{error}</div>}<label>Email<input type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="nama@kemenhaj.go.id" required/></label><label>Kata sandi<input type="password" value={password} onChange={e=>setPassword(e.target.value)} placeholder="••••••••" required/></label><button className="btn primary full" disabled={loading}>{loading?'Memproses...':'Masuk'} <ArrowRight size={16}/></button>{loading&&<p role="status" className="login-waiting">{waitingForServer?'Server sedang disiapkan. Pada hosting gratis, proses masuk dapat lebih lama setelah tidak digunakan. Mohon tunggu, jangan kirim ulang.':'Menghubungi server…'}</p>}</form><section className="signup-callout" aria-label="Pembuatan akun"><h2>Butuh akun lembaga?</h2><p>Untuk travel PPIU/PIHK, ajukan akun dan berkas melalui layanan publik. Akun dibuat Kanwil setelah verifikasi.</p><Link className="btn gold full" to="/pengajuan-akun-travel">Ajukan Akun Admin Travel <ArrowRight size={18}/></Link></section><small>Akses diberikan sesuai akun dan kewenangan petugas yang terdaftar.</small></>
   </div></section></Layout>}
 
 function AboutPage(){return <Layout><PageHero kicker="Tentang portal" title="Portal Layanan Haji & Umrah Provinsi Riau" text="Layanan informasi jemaah dan administrasi penyelenggara dalam satu aplikasi."/><section className="section prose"><h2>Untuk jemaah dan masyarakat</h2><p>Gunakan pengaduan, direktori penyelenggara, materi fikih, tutorial manasik, bacaan doa, cek data jemaah, serta konsultasi dengan petugas.</p><h2>Untuk lembaga dan petugas</h2><p>Dashboard mendukung pemantauan perjalanan, manifest jemaah, pelaporan manasik, administrasi perizinan, penugasan petugas dan tindak lanjut layanan sesuai kewenangan masing-masing.</p><h2>Profil dan pejabat Kanwil</h2><p>Informasi pejabat dapat dilihat pada situs resmi Kanwil Kementerian Haji dan Umrah Provinsi Riau.</p><a className="btn primary" href="https://riau.haji.go.id/profil/pejabat" target="_blank" rel="noopener noreferrer">Lihat profil pejabat Kanwil</a><p><Link to="/bantuan">Bantuan penggunaan layanan</Link> · <Link to="/hubungi-admin">Hubungi Admin</Link></p></section></Layout>}

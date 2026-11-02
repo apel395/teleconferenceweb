@@ -168,6 +168,7 @@ td b{font:700 11px 'Manrope'}
 .login-card label{display:block;font-size:9px;font-weight:800;color:#655850;margin:13px 0}
 .login-card label input{display:block;width:100%;margin-top:6px;border:1px solid var(--line);border-radius:9px;padding:11px;outline:0}
 .login-card label input:focus{border-color:#b38a52}
+.login-card .login-waiting{margin:12px 0 0;padding:10px 12px;border-radius:8px;background:#f1f7f4;color:#185b42;font-size:12px;line-height:1.55}
 .login-card>small{display:block;margin-top:12px;text-align:center;color:#9a8e86;font-size:8px;line-height:1.5}
 .form-error{background:#fdecea;color:#b3261e;border:1px solid #f5c6c2;border-radius:8px;padding:10px 12px;font-size:10px;font-weight:700;margin-bottom:12px}
 .track-wrap{max-width:760px;margin:auto;display:grid;gap:22px}

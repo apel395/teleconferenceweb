@@ -4,14 +4,14 @@ const base='http://127.0.0.1:4178',server=spawn(process.execPath,['node_modules/
 const user={id:'00000000-0000-0000-0000-000000000001',email:'ops@example.org',name:'Testing Admin',role:'admin',company_id:null,access_version:4,account_provisioned:true};
 const cache=()=>({scope_key:'testing-admin-scope',revision:1,max_age_seconds:30,server_time:new Date().toISOString()});
 const token='e30.'+Buffer.from(JSON.stringify({exp:Math.floor(Date.now()/1000)+3600})).toString('base64url')+'.testing';
-async function scenario({legacy=false,chunkFailure=false,dashboardFailure=false}={}){
+async function scenario({legacy=false,chunkFailure=false,dashboardFailure=false,loginDelayMs=450}={}){
  const context=await browser.newContext({viewport:{width:390,height:844}}),page=await context.newPage(),calls=[],errors=[];page.on('pageerror',e=>errors.push(e.message));
  await context.route(/LiveDashboard-.*\.js/,async route=>{if(chunkFailure)return route.abort('failed');await new Promise(r=>setTimeout(r,250));await route.continue();});
  await context.route('**/api/**',async route=>{
   const req=route.request(),url=new URL(req.url()),path=url.pathname.slice(4),method=req.method();calls.push({path,method});let body;try{body=req.postDataJSON()}catch{}let data={},status=200;
   if(path==='/auth/login'){
    if(body.password==='wrong-password'){status=401;data={error:'Email atau password salah'};}
-   else {await new Promise(r=>setTimeout(r,450));data={token,user,...(legacy?{}:{access:{role:'admin',company_id:null,modules:['overview','accounts','settings'],access_version:2}})};}
+   else {await new Promise(r=>setTimeout(r,loginDelayMs));data={token,user,...(legacy?{}:{access:{role:'admin',company_id:null,modules:['overview','accounts','settings'],access_version:2}})};}
   }else if(path==='/settings/access/me'){await new Promise(r=>setTimeout(r,250));data={user,role:'admin',company_id:null,modules:['overview','accounts','settings'],cache:cache()};}
   else if(path==='/workspace/dashboard'){if(dashboardFailure){status=503;data={error:'Testing ringkasan sementara tidak tersedia'};}else data={dashboard:{role:'admin',year:2026,cache:cache(),summary:{system:{accounts:1,unprovisioned:0}}}};}
   else if(path==='/workspace/notifications')data={notifications:[]};
@@ -32,6 +32,12 @@ async function run(){
  const old=await scenario({legacy:true});await old.page.goto(base+'/masuk');await login(old);await old.page.getByRole('heading',{name:'Ringkasan Admin Kanwil',exact:true}).waitFor();assert.equal(old.calls.filter(c=>c.path==='/settings/access/me').length,1);assert.deepEqual(old.errors,[]);await old.context.close();
  const failed=await scenario({chunkFailure:true});await failed.page.goto(base+'/masuk');await login(failed);await failed.page.getByRole('heading',{name:'Dashboard belum dapat ditampilkan',exact:true}).waitFor();assert.equal(await failed.page.getByRole('button',{name:'Muat ulang dashboard',exact:true}).isVisible(),true);await failed.context.close();
  const partial=await scenario({dashboardFailure:true});await partial.page.goto(base+'/masuk');await login(partial);await partial.page.getByRole('alert').filter({hasText:'Testing ringkasan sementara tidak tersedia'}).waitFor();assert.equal(await partial.page.getByRole('button',{name:'Muat ulang dashboard',exact:true}).isVisible(),true);assert.deepEqual(partial.errors,[]);await partial.context.close();
- console.log('PASS production fresh admin login: wrong-password retry, atomic access bootstrap without extra auth reads, dashboard without reload, reload restoration, legacy backend, chunk-error recovery and dashboard API failure.');
+ const slow=await scenario({loginDelayMs:9500});await slow.page.goto(base+'/masuk');await login(slow);
+ await slow.page.getByText('Server sedang disiapkan.',{exact:false}).waitFor({timeout:12000});
+ assert.equal(await slow.page.getByRole('button',{name:/Memproses/}).isDisabled(),true);
+ await slow.page.locator('form').first().evaluate(form=>form.requestSubmit());
+ await slow.page.getByRole('heading',{name:'Ringkasan Admin Kanwil',exact:true}).waitFor();
+ assert.equal(slow.calls.filter(c=>c.path==='/auth/login').length,1);assert.deepEqual(slow.errors,[]);await slow.context.close();
+ console.log('PASS production fresh admin login: wrong-password retry, atomic access bootstrap, dashboard without reload, reload restoration, legacy backend, chunk-error recovery, dashboard API failure, slow-server status and duplicate-submit protection.');
 }
 run().catch(async e=>{console.error(e);if(browser)for(const c of browser.contexts())for(const p of c.pages())console.error('FAIL PAGE',p.url(),await p.locator('body').innerText().catch(()=>''));process.exitCode=1;}).finally(async()=>{await browser?.close();server.kill('SIGTERM');});

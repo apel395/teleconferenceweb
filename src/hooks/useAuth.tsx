@@ -28,7 +28,9 @@ export function AuthProvider({children}:{children:ReactNode}){
  },[]);
  const logout=useCallback(()=>{clearSession();setUser(null);setIsAuth(false);setModules([]);setLoading(false);setError('');},[]);
  const login=useCallback(async(email:string,password:string)=>{
-  const session=await api<AuthSession>('/auth/login',{method:'POST',body:{email:email.trim(),password},timeoutMs:60000});
+  // Render Free may need roughly a minute to wake after inactivity. Keep this
+  // request open long enough for startup plus the subsequent auth checks.
+  const session=await api<AuthSession>('/auth/login',{method:'POST',body:{email:email.trim(),password},timeoutMs:120000});
   const access=session.access;
   const ready=access&&access.role===session.user.role&&(access.company_id||null)===(session.user.company_id||null)&&Array.isArray(access.modules)&&access.modules.every(m=>typeof m==='string');
   observedToken.current=session.token;setSession(session);setScopeKey('');setUser(session.user);setError('');
