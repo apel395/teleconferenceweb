@@ -22,6 +22,13 @@ test('table opens detail or dedicated history and displays WIB time and ready st
  const render=history=>renderToStaticMarkup(React.createElement(MemoryRouter,null,React.createElement(Table,{rows:[{...ticket,journey_status:'SUBMITTED'}],base:'/admin',history})));
  const html=render(false);assert.ok(html.includes('<table'));assert.ok(html.includes('09:15'));assert.ok(html.includes('Siap Berangkat'));assert.ok(html.includes('/admin/laporan-umrah/testing'));assert.ok(!html.includes('Papan tiket'));assert.ok(render(true).includes('/admin/riwayat-perjalanan/testing'));
 });
+test('narrow-screen ticket cards keep status, itinerary and detail link readable',()=>{
+ const html=renderToStaticMarkup(React.createElement(MemoryRouter,null,React.createElement(Table,{rows:[{...ticket,journey_status:'SUBMITTED'}],base:'/travel'})));
+ for(const text of ['journey-mobile-list','journey-ticket-card','TESTING-TICKET-001','Siap Berangkat','Maskapai / rute','Berangkat (WIB)','09:15','/travel/laporan-umrah/testing'])assert.ok(html.includes(text),text);
+ const empty=renderToStaticMarkup(React.createElement(MemoryRouter,null,React.createElement(Table,{rows:[],base:'/travel'})));
+ assert.ok(empty.includes('journey-ticket-empty'));
+ assert.ok(empty.includes('Tidak ada tiket sesuai pencarian.'));
+});
 test('filters start collapsed and history has a separate heading',()=>{
  for(const history of [false,true]){const html=renderToStaticMarkup(React.createElement(MemoryRouter,null,React.createElement(List,{base:'/admin',history})));assert.ok(html.includes('aria-expanded="false"'));assert.ok(html.includes('id="journey-filters" hidden=""'));assert.ok(!html.includes('Papan tiket'));if(history)assert.ok(html.includes('Riwayat Perjalanan'));}
 });
