@@ -69,8 +69,45 @@ export function UmrahTravelList({base,history=false}:{base:string;history?:boole
  {error?<p className="form-error" role="alert">{error}</p>:<><p role="status" className="journey-result-count">{loading?'Memuat tiket…':`${total} tiket perjalanan · Halaman ${page}`}</p><JourneyTicketTable rows={rows} base={base} history={history}/><div className="manifest-pagination"><button type="button" disabled={loading||page===1} onClick={()=>filter('page',String(page-1))}>Sebelumnya</button><span>Halaman {page}</span><button type="button" disabled={loading||page*25>=total} onClick={()=>filter('page',String(page+1))}>Berikutnya</button></div></>}
  </section></div>;
 }
+function JourneyTicketStatus({report}:{report:Ticket}){
+ return <>
+  <span className={`journey-status phase-${report.journey_status.toLowerCase()}`}>{phases[report.journey_status]}</span>
+  {report.journey_status==='SUBMITTED'&&<small className="journey-table-sub">{report.departure_confirmed_at?'Terkonfirmasi · menunggu jam berangkat':'Konfirmasi Kanwil pada hari keberangkatan'}</small>}
+  {['RETURNING','RETURN_NOTES'].includes(report.journey_status)&&<small className="journey-table-sub">{report.return_submitted_at?'Jadwal tiba terkirim':'Persiapan belum dikirim'}</small>}
+ </>;
+}
 export function JourneyTicketTable({rows,base,history=false}:{rows:Ticket[];base:string;history?:boolean}){
- return <div className="table-wrap-live"><table className="table-live"><thead><tr>{['Nomor tiket','Travel / PPIU','Maskapai / Rute','Keberangkatan (WIB)','Tiba kembali (WIB)','Status','Aksi'].map(x=><th key={x} scope="col">{x}</th>)}</tr></thead><tbody>{rows.map(r=><tr key={r.id}><td>{r.reference}</td><td>{r.form_data.ppiu_name}</td><td>{r.form_data.airline}<br/>{r.form_data.route}</td><td>{r.form_data.travel_date||'—'}<small className="journey-table-sub">{r.form_data.travel_time||'Jam belum diisi'}</small></td><td>{r.return_form_data?.travel_date||'Belum disiapkan'}<small className="journey-table-sub">{r.return_form_data?.travel_time||''}</small></td><td><span className={`journey-status phase-${r.journey_status.toLowerCase()}`}>{phases[r.journey_status]}</span>{r.journey_status==='SUBMITTED'&&<small className="journey-table-sub">{r.departure_confirmed_at?'Terkonfirmasi · menunggu jam berangkat':'Konfirmasi Kanwil pada hari keberangkatan'}</small>}{['RETURNING','RETURN_NOTES'].includes(r.journey_status)&&<small className="journey-table-sub">{r.return_submitted_at?'Jadwal tiba terkirim':'Persiapan belum dikirim'}</small>}</td><td><Link className="btn light sm" to={`${base}/${history?'riwayat-perjalanan':'laporan-umrah'}/${r.id}`}>{history?'Lihat riwayat':'Buka tiket'}</Link></td></tr>)}{!rows.length&&<tr><td colSpan={7}>Tidak ada tiket sesuai pencarian.</td></tr>}</tbody></table></div>;
+ const ticketHref=(r:Ticket)=>`${base}/${history?'riwayat-perjalanan':'laporan-umrah'}/${r.id}`;
+ return <>
+  <div className="table-wrap-live journey-desktop-table">
+   <table className="table-live">
+    <thead><tr>{['Nomor tiket','Travel / PPIU','Maskapai / Rute','Keberangkatan (WIB)','Tiba kembali (WIB)','Status','Aksi'].map(x=><th key={x} scope="col">{x}</th>)}</tr></thead>
+    <tbody>{rows.map(r=><tr key={r.id}>
+     <td>{r.reference}</td><td>{r.form_data.ppiu_name}</td><td>{r.form_data.airline}<br/>{r.form_data.route}</td>
+     <td>{r.form_data.travel_date||'—'}<small className="journey-table-sub">{r.form_data.travel_time||'Jam belum diisi'}</small></td>
+     <td>{r.return_form_data?.travel_date||'Belum disiapkan'}<small className="journey-table-sub">{r.return_form_data?.travel_time||''}</small></td>
+     <td><JourneyTicketStatus report={r}/></td>
+     <td><Link className="btn light sm" to={ticketHref(r)}>{history?'Lihat riwayat':'Buka tiket'}</Link></td>
+    </tr>)}{!rows.length&&<tr><td colSpan={7}>Tidak ada tiket sesuai pencarian.</td></tr>}</tbody>
+   </table>
+  </div>
+  <div className="journey-mobile-list" aria-label={history?'Daftar riwayat perjalanan':'Daftar tiket perjalanan'}>
+   {rows.map(r=><article className="journey-ticket-card" key={r.id}>
+    <div className="journey-ticket-card-head">
+     <div><span className="journey-ticket-card-label">Nomor tiket</span><strong className="journey-ticket-reference">{r.reference}</strong></div>
+     <JourneyTicketStatus report={r}/>
+    </div>
+    <dl className="journey-ticket-card-data">
+     <div><dt>Travel / PPIU</dt><dd>{r.form_data.ppiu_name||'—'}</dd></div>
+     <div><dt>Maskapai / rute</dt><dd>{[r.form_data.airline,r.form_data.route].filter(Boolean).join(' · ')||'—'}</dd></div>
+     <div><dt>Berangkat (WIB)</dt><dd>{r.form_data.travel_date||'—'} <span>{r.form_data.travel_time||'Jam belum diisi'}</span></dd></div>
+     <div><dt>Tiba kembali (WIB)</dt><dd>{r.return_form_data?.travel_date||'Belum disiapkan'}{r.return_form_data?.travel_time&&<span> {r.return_form_data.travel_time}</span>}</dd></div>
+    </dl>
+    <Link className="btn light journey-ticket-card-action" to={ticketHref(r)}>{history?'Lihat riwayat':'Buka tiket'}</Link>
+   </article>)}
+   {!rows.length&&<p className="journey-ticket-empty">Tidak ada tiket sesuai pencarian.</p>}
+  </div>
+ </>;
 }
 export function TicketFormFields({form,onChange,kind,disabled,lockCompany}:{form:Form;onChange:(f:Form)=>void;kind:Kind;disabled:boolean;lockCompany:boolean}){
  const set=<K extends keyof Form>(key:K,value:Form[K])=>onChange({...form,[key]:value});
