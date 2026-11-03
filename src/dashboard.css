@@ -326,6 +326,16 @@
 .pilgrim-mobile-list,.manifest-snapshot-mobile-list{display:none}
 .pilgrim-filter-help{font-size:12px;color:#657168;margin:12px 0 0;line-height:1.5}
 .pilgrim-result-count{margin:0 0 15px;font-size:13px;font-weight:700;color:#566c5c}
+.pilgrim-pagination{gap:12px}
+.pilgrim-pagination-actions,.pilgrim-page-jump{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.pilgrim-pagination-actions .btn{min-height:40px}
+.pilgrim-page-jump label{max-width:none;white-space:nowrap;font-size:13px}
+.pilgrim-page-jump input{width:80px;min-height:40px;padding:8px}
+@media(max-width:760px){
+ .pilgrim-pagination{align-items:stretch;flex-direction:column}
+ .pilgrim-pagination-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+ .pilgrim-page-jump{justify-content:flex-start}
+}
 @media(max-width:760px){
  .pilgrim-desktop-table,.manifest-snapshot-desktop-table{display:none}
  .pilgrim-mobile-list,.manifest-snapshot-mobile-list{display:grid;gap:12px}
