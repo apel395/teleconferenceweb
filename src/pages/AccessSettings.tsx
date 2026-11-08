@@ -29,7 +29,7 @@ export function ModuleGate({module,children}:{module:string;children:React.React
  const {can}=useAuth();return can(module)?<>{children}</>:<section className="dash-panel"><h1>Akses tidak tersedia</h1><p>Role Anda tidak memiliki hak akses ke layanan ini. Hubungi Admin Kanwil.</p></section>;
 }
 export function RoleHome(){
- const {user,modules}=useAuth();const links=[['journeys','tiket-perjalanan','Perjalanan Jemaah'],['licenses','perizinan','Pengajuan Perizinan'],['manifests','jemaah','Data Jemaah & Manifest'],['hajj_staff','kondisi-jemaah','Kondisi Jemaah'],['manasik','manasik','Pelaporan Manasik'],['accounts','akun','Akun & Organisasi'],['settings','pengaturan','Role & Hak Akses']];
+ const {user,modules}=useAuth();const links=[['journeys','tiket-perjalanan','Perjalanan Jemaah'],['licenses','perizinan','Pengajuan Perizinan'],['manifests','jemaah','Data Jemaah'],['hajj_staff','kondisi-jemaah','Kondisi Jemaah'],['manasik','manasik','Pelaporan Manasik'],['accounts','akun','Akun & Organisasi'],['settings','pengaturan','Role & Hak Akses']];
  return <div className="managed-form"><h1>{roleNames[user?.role||'']||'Dashboard'}</h1><section className="dash-panel"><h2>{user?.name}</h2><p>Pilih layanan sesuai kewenangan akun Anda.</p><div className="airport-actions">{links.filter(([module])=>modules.includes(module)).map(([,path,title])=><Link className="btn light" key={path} to={`${dashboardFor(user?.role)}/${path}`}>{title}</Link>)}</div></section></div>;
 }
 export function StaffScope(){
