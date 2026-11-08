@@ -1,9 +1,14 @@
 import {API_URL,getToken,sessionExpiresAt,expireSession} from './api';
 export type OrganizationOption={id:string;name:string;organization_type:string};
-export type Pilgrim={id:string;hajj_year:number;porsi_number:string;full_name:string;phone:string;gender:string;birth_date:string;hajj_type:string;kloter_code:string;status:string;version:number;company_id:string|null;kbihu_id:string|null;regional_office_id:string|null;person?:{full_name:string;phone:string;gender:string;birth_date:string}};
-export const pilgrimLabels:Record<string,string>={porsi_number:'Nomor porsi',full_name:'Nama jemaah',phone:'Nomor HP',gender:'Jenis kelamin',birth_date:'Tanggal lahir',hajj_type:'Jenis haji / umrah',kloter_code:'Kloter',status:'Status',company_id:'Travel PPIU / PIHK',kbihu_id:'KBIHU',regional_office_id:'Kemenhaj kabupaten/kota'};
+export type Pilgrim={id:string;hajj_year:number;porsi_number:string;full_name:string;phone:string;gender:string;birth_date:string;hajj_type:string;kloter_code:string;status:string;journey_status?:string;version:number;company_id:string|null;kbihu_id:string|null;regional_office_id:string|null;person?:{full_name:string;phone:string;gender:string;birth_date:string}};
+export const pilgrimLabels:Record<string,string>={porsi_number:'Nomor porsi',full_name:'Nama jemaah',phone:'Nomor HP',gender:'Jenis kelamin',birth_date:'Tanggal lahir',hajj_type:'Jenis haji / umrah',kloter_code:'Kloter',status:'Status administrasi',company_id:'Travel PPIU / PIHK',kbihu_id:'KBIHU',regional_office_id:'Kemenhaj kabupaten/kota'};
 export const stages:Record<string,string>={PRE:'Pramanifest',DEPARTURE:'Manifest keberangkatan',RETURN:'Manifest kepulangan'};
 export const statuses:Record<string,string>={ACTIVE:'Aktif',CANCELLED:'Batal',REPLACED:'Digantikan',TRANSFERRED:'Mutasi',RETURNED:'Sudah pulang',SUBMITTED:'Menunggu pemeriksaan',NEEDS_REVISION:'Perlu perbaikan',APPROVED:'Disetujui',REJECTED:'Ditolak',OPEN:'Terbuka',IN_PROGRESS:'Ditangani',RESOLVED:'Selesai'};
+export const journeyStatuses:Record<string,string>={BELUM_DIKONFIRMASI:'Belum dikonfirmasi',BELUM_BERANGKAT:'Belum berangkat',SUDAH_BERANGKAT:'Sudah berangkat',SUDAH_PULANG:'Sudah pulang'};
+export function journeyLabel(p:Pilgrim){
+ if(!['ACTIVE','RETURNED'].includes(p.status))return statuses[p.status]||p.status;
+ return journeyStatuses[p.journey_status||(p.status==='RETURNED'?'SUDAH_PULANG':'BELUM_DIKONFIRMASI')]||'Belum dikonfirmasi';
+}
 export const types:Record<string,string>={REGULER:'Haji reguler',HAJI_KHUSUS:'Haji khusus',UMRAH:'Umrah'};
 export const changeTypes:Record<string,string>={CORRECTION:'Koreksi data',REPLACEMENT:'Penggantian jemaah',CANCEL:'Pembatalan',TRANSFER:'Mutasi kloter / lembaga'};
 // A person and a yearly participation have different IDs and revision counters.
