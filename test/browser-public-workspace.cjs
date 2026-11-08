@@ -89,7 +89,7 @@ assert.equal(await mobilePilgrim.page.locator('.pilgrim-mobile-card').getByText(
 assert.equal(await mobilePilgrim.page.locator('.pilgrim-mobile-card').getByText('00001234').count(),1);
 await mobilePilgrim.page.getByRole('button',{name:'Lihat jemaah'}).click();
 await mobilePilgrim.page.locator('.manifest-details').waitFor();
-await mobilePilgrim.page.getByRole('button',{name:'Tiga tahap manifest'}).click();
+await mobilePilgrim.page.getByRole('button',{name:'Impor & verifikasi'}).click();
 await mobilePilgrim.page.getByLabel('Pilih versi manifest').selectOption(id(70));
 await mobilePilgrim.page.locator('.manifest-snapshot-mobile-card').waitFor();
 assert.equal(await mobilePilgrim.page.locator('.manifest-snapshot-desktop-table').isVisible(),false);
