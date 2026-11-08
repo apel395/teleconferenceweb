@@ -32,7 +32,10 @@ export default function ManifestPage({year,embedded=false}:{year?:string;embedde
   function closeDetail(){detailRequest.current++;setDetailLoading(false);setDetail(null);setDetailError('');detailTrigger.current?.focus()}
   useEffect(()=>{
     let alive = true;setError('');setSummary(null);setLoading(true);
-    api<{imports:Import[];selected:Import|null;summary:Summary|null}>(`/operations/manifests/meta${selected?'?import_id='+encodeURIComponent(selected):''}`)
+    const metadataFilter = new URLSearchParams();
+    if(year)metadataFilter.set('year',year);
+    if(selected)metadataFilter.set('import_id',selected);
+    api<{imports:Import[];selected:Import|null;summary:Summary|null}>(`/operations/manifests/meta?${metadataFilter}`)
       .then(d=>{if(alive){
         const options=d.imports.filter(item=>!year||String(item.hajj_year)===year);
         const chosen=options.find(item=>item.id===selected)||options[0];
@@ -48,12 +51,13 @@ export default function ManifestPage({year,embedded=false}:{year?:string;embedde
     if(!selected)return;
     let alive = true;setLoading(true);setError('');setRows([]);
     const params = new URLSearchParams({import_id:selected,page:String(page),size:String(size),...filters});
+    if(year)params.set('year',year);
     api<{entries:Entry[];total:number}>(`/operations/manifests?${params}`)
       .then(d=>{if(alive){setRows(d.entries);setTotal(d.total)}})
       .catch(e=>{if(alive)setError(e.message)})
       .finally(()=>{if(alive)setLoading(false)});
     return ()=>{alive=false};
-  },[selected,page,size,filters,reload]);
+  },[selected,page,size,filters,reload,year]);
   function filter(key:keyof typeof filters,value:string){setPage(1);setFilters(old=>({...old,[key]:value}))}
   async function openDetail(id:string,trigger:HTMLButtonElement){const request=++detailRequest.current;detailTrigger.current=trigger;setDetail(null);setDetailError('');setDetailLoading(true);try{const d=await api<{entry:Entry}>(`/operations/manifests/${id}`);if(request===detailRequest.current)setDetail(d.entry)}catch(e){if(request===detailRequest.current)setDetailError(e instanceof Error?e.message:'Gagal memuat rincian.')}finally{if(request===detailRequest.current)setDetailLoading(false)}}
   const pages = Math.max(1,Math.ceil(total/size));
