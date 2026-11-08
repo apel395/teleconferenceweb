@@ -326,6 +326,9 @@
 .pilgrim-mobile-list,.manifest-snapshot-mobile-list{display:none}
 .pilgrim-filter-help{font-size:12px;color:#657168;margin:12px 0 0;line-height:1.5}
 .pilgrim-result-count{margin:0 0 15px;font-size:13px;font-weight:700;color:#566c5c}
+.pilgrim-year-filter{margin:14px 0 20px}
+.pilgrim-year-filter label{display:flex;align-items:center;gap:12px;font-weight:700}
+.pilgrim-year-filter select{width:min(180px,100%);min-height:42px}
 .pilgrim-pagination{gap:12px}
 .pilgrim-pagination-actions,.pilgrim-page-jump{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .pilgrim-pagination-actions .btn{min-height:40px}
