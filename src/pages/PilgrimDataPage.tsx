@@ -8,6 +8,7 @@ import {emptyPilgrim,PilgrimFields,Pager} from '../components/OperationalFields'
 import {PilgrimPager} from '../components/PilgrimPager';
 import ManifestSnapshots from './ManifestSnapshots';
 import LegacyManifest from './ManifestPage';
+import HajjManifestImport from './HajjManifestImport';
 type Change={id:string;participation_id:string;request_type:string;changes:Record<string,string>;base_version:number;version:number;reason:string;evidence_url:string;status:string;review_notes:string;requested_by:string;created_at:string};
 type Audit={id:string;created_at:string;reason:string;old_value:unknown;new_value:unknown};
 const identityFields=['full_name','phone','gender','birth_date'];
@@ -77,7 +78,7 @@ export default function PilgrimDataPage(){
   <div className="operational-tabs" role="group" aria-label="Bagian data jemaah">
    {[['master','Daftar jemaah'],['manifest','Impor & verifikasi'],...(user?.role!=='petugas_haji'?[['changes','Pengajuan perubahan']]:[]),...(manager?[['schedules','Jadwal keberangkatan publik']]:[])].map(([key,label])=><button className={'btn '+(tab===key?'primary':'light')} key={key} aria-pressed={tab===key} onClick={()=>setTab(key)}>{label}</button>)}
   </div>
-  {tab==='master'?(manager&&year==='2026'?<LegacyManifest key={year} year={year} embedded/>:<PilgrimMaster key={year} year={year} organizations={organizations}/>):tab==='manifest'?<ManifestSnapshots key={year} year={year} organizations={organizations}/>:tab==='changes'?<ChangeQueue organizations={organizations}/>:<DepartureSchedules organizations={organizations}/>}
+  {tab==='master'?(manager?<LegacyManifest key={year} year={year} embedded/>:<PilgrimMaster key={year} year={year} organizations={organizations}/>):tab==='manifest'?(manager?<HajjManifestImport key={year} year={year} onView={()=>setTab('master')}/>:<ManifestSnapshots key={year} year={year} organizations={organizations}/>):tab==='changes'?<ChangeQueue organizations={organizations}/>:<DepartureSchedules organizations={organizations}/>}
  </div>;
 }
 function PilgrimMaster({organizations,year}:{organizations:OrganizationOption[];year:string}){
