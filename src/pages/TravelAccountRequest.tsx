@@ -23,7 +23,7 @@ export default function TravelAccountRequest(){
  const set=(k:string,v:string)=>setForm(f=>({...f,[k]:v}));
  async function copyReceipt(){
   if(!receipt)return;
-  try{await navigator.clipboard.writeText('Nomor pengajuan: '+receipt.request.reference+'\\nKunci pelacakan: '+receipt.tracking_token);setCopied(true);}
+  try{await navigator.clipboard.writeText('Nomor pengajuan: '+receipt.request.reference+'\nKunci pelacakan: '+receipt.tracking_token);setCopied(true);}
   catch{setError('Salin nomor dan kunci pelacakan secara manual, lalu simpan di tempat aman.');}
  }
  async function submit(e:React.FormEvent){e.preventDefault();setBusy(true);setError('');try{if(revision&&tracked){await api('/travel-requests/resubmit',{method:'PATCH',body:{tracking_token:lookup.token,reference:lookup.reference,version:tracked.version,data:{...form,declaration}}});setRevision(false);setTracked(null);setDeclaration(false);await track()}else{const d=await api<{request:{reference:string;status:string};tracking_token:string}>('/travel-requests/public',{method:'POST',body:{...form,declaration}});setReceipt(d);setCopied(false);setLookup({reference:d.request.reference,token:d.tracking_token})}}catch(e){setError((e as Error).message)}finally{setBusy(false)}}
